@@ -13,7 +13,9 @@ export default defineConfig(({ mode }) => {
   Object.assign(process.env, env);
 
   return {
-    // All env files live at the repo root — keep Vite's own env loading there too,
+    // Per GitHub Pages (project page) gli asset devono stare sotto /aifattoredisumano/
+    base: mode === "production" ? "/aifattoredisumano/" : "/",
+    // All env files live at the repo root - keep Vite's own env loading there too,
     // so packages/web/.env* files can never shadow the root .env.
     envDir: root,
     plugins: [honoDevPlugin(), react(), tailwind(), assetOptimizerPlugin()],

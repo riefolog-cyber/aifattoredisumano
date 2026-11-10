@@ -144,13 +144,13 @@ export function HomeSection({
           </div>
           <a
             className="concept-map-card"
-            href="/digimap-fattore-disumano.html"
+            href={`${import.meta.env.BASE_URL}digimap-fattore-disumano.html`}
             target="_blank"
             rel="noreferrer noopener"
           >
             <span className="concept-map-shot">
               <img
-                src="/images/mappa-concettuale.jpg"
+                src={`${import.meta.env.BASE_URL}images/mappa-concettuale.jpg`}
                 alt="Anteprima della mappa concettuale interattiva del percorso"
                 loading="lazy"
                 decoding="async"

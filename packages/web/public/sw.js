@@ -1,13 +1,15 @@
-const CACHE_NAME = "fd-cache-v1";
+const CACHE_NAME = "fd-cache-v2";
+const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, "");
+const withBase = (path) => `${BASE}${path}`;
 const CORE_ASSETS = [
-	"/",
-	"/index.html",
-	"/manifest.webmanifest",
-	"/icon.svg",
-	"/icon-192.png",
-	"/icon-512.png",
-	"/favicon.ico",
-	"/og-image.png",
+	withBase("/"),
+	withBase("/index.html"),
+	withBase("/manifest.webmanifest"),
+	withBase("/icon.svg"),
+	withBase("/icon-192.png"),
+	withBase("/icon-512.png"),
+	withBase("/favicon.ico"),
+	withBase("/og-image.png"),
 ];
 
 self.addEventListener("install", (event) => {
@@ -34,7 +36,7 @@ self.addEventListener("fetch", (event) => {
 
 	const url = new URL(request.url);
 	if (url.origin !== self.location.origin) return;
-	if (url.pathname.startsWith("/api/")) return;
+	if (url.pathname.startsWith(withBase("/api/"))) return;
 
 	// Navigazioni: rete prima, cache come fallback offline.
 	if (request.mode === "navigate") {
@@ -42,11 +44,13 @@ self.addEventListener("fetch", (event) => {
 			fetch(request)
 				.then((response) => {
 					const copy = response.clone();
-					caches.open(CACHE_NAME).then((cache) => cache.put("/index.html", copy));
+					caches.open(CACHE_NAME).then((cache) => cache.put(withBase("/index.html"), copy));
 					return response;
 				})
 				.catch(() =>
-					caches.match("/index.html").then((cached) => cached || caches.match("/")),
+					caches
+						.match(withBase("/index.html"))
+						.then((cached) => cached || caches.match(withBase("/"))),
 				),
 		);
 		return;
@@ -54,7 +58,7 @@ self.addEventListener("fetch", (event) => {
 
 	// Asset statici: cache-first con aggiornamento in background.
 	if (
-		url.pathname.startsWith("/assets/") ||
+		url.pathname.startsWith(withBase("/assets/")) ||
 		/\.(css|js|mjs|woff2?|ttf|png|jpe?g|svg|ico|webmanifest)$/.test(url.pathname)
 	) {
 		event.respondWith(

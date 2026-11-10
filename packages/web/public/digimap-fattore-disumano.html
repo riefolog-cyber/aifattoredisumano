@@ -1,9 +1,5 @@
 <!DOCTYPE html>
-<html lang="it" style="--map-font: 'Trebuchet MS', sans-serif; --map-fs: 17px; --ik: 2.06;"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
-        window.__firebase_config = firebaseConfig;
-        window.__initial_auth_token = initialAuthToken;
-        window.__app_id = appId;
-            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxMzA4NDcyNjE5Njc4NDY0NjI3MCIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiIxT1VtYllHaTNKMFZNNkZKWGJWRGlpOXpyZXFfMURkSDUtZGlnaW1hcF9haS5odG1sLTQ5NiJ9LCJleHAiOjE3OTQzMzQ0NTUsImlhdCI6MTc5NDMzMDg1NSwiYWxnIjoiUlMyNTYifQ.af-dSYqFM4JjaTVEVgwVZAxthfSVixlzoIqEevraO9m1WNh5mHjkg3KJbKhVM4D8Uum6PTLbTfMeSN5_GCMWTfm_xxEFFMzNEFqKs-ezN1ZvsxkfGJQEs2SPUciMr84w-3XXafOVJtUqjbU_-607wkdf5MbkatE5pBVgfbiMhqRi70CSkkAyg-TaKxfx8q1CZEdX4OnpWz_axuff7tQMVL4IF8gHV_8ahHt4Sysz6wN8e6FG1vf7AIWOWd_B-BmO4dwx2RTczIum3USc3uGo47PMAgND_ZXaKiPpY-iDrlKRbd0Hei6Rk5lP0wM7-xX46xd8B3KLJbUZzSph_BpPwA","1OUmbYGi3J0VM6FJXbVDii9zreq_1DdH5-digimap_ai.html-496")</script><script data-bard-client-injected="true">
+<html lang="it" style="--map-font: 'Trebuchet MS', sans-serif; --map-fs: 17px; --ik: 2.06;"><head><script data-bard-client-injected="true">
   document.addEventListener('input', (event) => {
     if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
       const clonedDoc = document.cloneNode(true);
@@ -1056,28 +1052,28 @@ const toHtml = t => { t = String(t || ''); return /<[a-z][\s\S]*>/i.test(t) ? t 
 let layoutRows = Infinity;
 function layout(R = layoutRows) {
   if (!tree) return;
-  const GYI = 22, maxH = [], E = [];
-  (function m(n, d) { maxH[d] = Math.max(maxH[d] || 0, n.h); vis(n).forEach(c => m(c, d + 1)); })(tree, 0);
+  const GXI = 22, maxW = [], E = [];
+  (function m(n, d) { maxW[d] = Math.max(maxW[d] || 0, n.w); vis(n).forEach(c => m(c, d + 1)); })(tree, 0);
   const gridOf = p => {
     const ch = vis(p); if (!isFinite(R) || ch.length < 2 || ch.length <= R || ch.some(c => vis(c).length)) return null;
-    const k = Math.ceil(ch.length / R); return { k, cols: Math.ceil(ch.length / k) };
+    const k = Math.ceil(ch.length / R); return { k, rows: Math.ceil(ch.length / k) };
   };
-  (function e(n, d) { const g = gridOf(n); if (g) E[d + 1] = Math.max(E[d + 1] || 0, (g.k - 1) * (maxH[d + 1] + GYI)); vis(n).forEach(c => e(c, d + 1)); })(tree, 0);
-  const rowY = [0]; for (let d = 1; d < maxH.length; d++) rowY[d] = rowY[d - 1] + maxH[d - 1] + (E[d - 1] || 0) + GY;
-  const W = new Map();
-  (function w(n) {
+  (function e(n, d) { const g = gridOf(n); if (g) E[d + 1] = Math.max(E[d + 1] || 0, (g.k - 1) * (maxW[d + 1] + GXI)); vis(n).forEach(c => e(c, d + 1)); })(tree, 0);
+  const colX = [0]; for (let d = 1; d < maxW.length; d++) colX[d] = colX[d - 1] + maxW[d - 1] + (E[d - 1] || 0) + GX;
+  const H = new Map();
+  (function h(n) {
     const ch = vis(n), g = gridOf(n); let s = 0;
-    if (g) { n._colW = []; for (let c = 0; c < g.cols; c++) { let mw = 0; for (let i = c; i < ch.length; i += g.cols) mw = Math.max(mw, ch[i].w); n._colW.push(mw); } s = n._colW.reduce((a, b) => a + b, 0) + GX * (g.cols - 1); }
-    else { ch.forEach(c => { s += w(c); }); if (ch.length) s += GX * (ch.length - 1); }
-    n._cs = s; const r = Math.max(n.w, s); W.set(n.id, r); return r;
+    if (g) { n._rowH = []; for (let r = 0; r < g.rows; r++) { let mh = 0; for (let i = r; i < ch.length; i += g.rows) mh = Math.max(mh, ch[i].h); n._rowH.push(mh); } s = n._rowH.reduce((a, b) => a + b, 0) + GY * (g.rows - 1); }
+    else { ch.forEach(c => { s += h(c); }); if (ch.length) s += GY * (ch.length - 1); }
+    n._cs = s; const r = Math.max(n.h, s); H.set(n.id, r); return r;
   })(tree);
-  (function place(n, d, left) {
-    const bw = W.get(n.id); n.y = rowY[d]; n.x = left + bw / 2 - n.w / 2;
-    const ch = vis(n), g = gridOf(n); let l = left + (bw - n._cs) / 2;
+  (function place(n, d, top) {
+    const bh = H.get(n.id); n.x = colX[d]; n.y = top + bh / 2 - n.h / 2;
+    const ch = vis(n), g = gridOf(n); let t = top + (bh - n._cs) / 2;
     if (g) {
-      const colLeft = []; let acc = l; n._colW.forEach(cw => { colLeft.push(acc); acc += cw + GX; });
-      ch.forEach((c, i) => { const row = Math.floor(i / g.cols), col = i % g.cols; c.y = rowY[d + 1] + row * (maxH[d + 1] + GYI); c.x = colLeft[col] + (n._colW[col] - c.w) / 2; });
-    } else ch.forEach(c => { place(c, d + 1, l); l += W.get(c.id) + GX; });
+      const rowTop = []; let acc = t; n._rowH.forEach(rh => { rowTop.push(acc); acc += rh + GY; });
+      ch.forEach((c, i) => { const col = Math.floor(i / g.rows), row = i % g.rows; c.x = colX[d + 1] + col * (maxW[d + 1] + GXI); c.y = rowTop[row] + (n._rowH[row] - c.h) / 2; });
+    } else ch.forEach(c => { place(c, d + 1, t); t += H.get(c.id) + GY; });
   })(tree, 0, 0);
 }
 function pickRows() {
@@ -1096,8 +1092,8 @@ function pickRows() {
 }
 function linkPath(l) {
   const s = l.s, t = l.t;
-  const sx = s.x + s.ox + s.w / 2, sy = s.y + s.oy + s.h, tx = t.x + t.ox + t.w / 2, ty = t.y + t.oy, my = (sy + ty) / 2;
-  return `M${sx},${sy}C${sx},${my} ${tx},${my} ${tx},${ty}`;
+  const sx = s.x + s.ox + s.w, sy = s.y + s.oy + s.h / 2, tx = t.x + t.ox, ty = t.y + t.oy + t.h / 2, mx = (sx + tx) / 2;
+  return `M${sx},${sy}C${mx},${sy} ${mx},${ty} ${tx},${ty}`;
 }
 
 /* ===================== RENDER D3 ===================== */

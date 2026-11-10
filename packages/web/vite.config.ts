@@ -2,12 +2,11 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwind from "@tailwindcss/vite";
 import path from "path";
-import runableAnalyticsPlugin from "./vite/__plugins/runable-analytics-plugin";
-import honoDevPlugin from "./vite/__plugins/hono-dev-plugin";
-import assetOptimizerPlugin from "./vite/__plugins/asset-optimizer-plugin";
+import honoDevPlugin from "./vite/__plugins/hono-dev-plugin.ts";
+import assetOptimizerPlugin from "./vite/__plugins/asset-optimizer-plugin.ts";
 import ports from "../../__ports.cjs";
 
-const root = path.resolve(__dirname, "../..");
+const root = path.resolve(import.meta.dirname, "../..");
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, root, "");
@@ -17,16 +16,10 @@ export default defineConfig(({ mode }) => {
     // All env files live at the repo root — keep Vite's own env loading there too,
     // so packages/web/.env* files can never shadow the root .env.
     envDir: root,
-    plugins: [
-      honoDevPlugin(),
-      react(),
-      runableAnalyticsPlugin(),
-      tailwind(),
-      assetOptimizerPlugin(),
-    ],
+    plugins: [honoDevPlugin(), react(), tailwind(), assetOptimizerPlugin()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src/web"),
+        "@": path.resolve(import.meta.dirname, "./src/web"),
       },
     },
     server: {

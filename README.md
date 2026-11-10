@@ -1,19 +1,13 @@
-# App template
+# Il Fattore Disumano
 
-Runable copies this Bun and Turborepo project into each new sandbox.
+Percorso didattico interattivo su intelligenza artificiale, cognizione e autonomia del pensiero.
 
-The root package commands are the external contract:
+## Sviluppo
 
-- `bun run dev` starts the web app.
-- `bun run dev:desktop` and `bun run dev:mobile` start platform clients.
-- `bun run build` builds every package.
-- `bun run start` starts or restarts the production server.
-- `bun run stop` stops the production server.
-- `bun run lint` and `bun run typecheck` validate the project.
-- The `db:generate`, `db:migrate`, and `db:push` commands manage the database.
+- `bun install` — installa le dipendenze
+- `bun run dev` — avvia il sito web in sviluppo
+- `bun run build:web` — genera la build statica del sito (`packages/web/dist`)
+- `bun run typecheck` — controlla i tipi
 
-Deployment tools depend on these command names. Their implementations may change, but the names must remain stable.
+Il pacchetto web si trova in `packages/web`.
 
-The web package owns the API, database, and shared web interface. The mobile package is an Expo client. The desktop package is an Electron shell around the web app. Services use the fixed ports defined in `__ports.cjs`, and the web health endpoint is `/api/health`.
-
-Secrets belong in the root `.env` file. Browser values must use the `VITE_` prefix. Commands prefixed with `internal:` are for template maintenance.

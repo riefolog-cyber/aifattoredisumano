@@ -4,8 +4,71 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="theme-color" content="#11191d" />
+		<meta name="color-scheme" content="dark light" />
+		<meta name="author" content="prof. Riefolo Giovanni" />
 		<meta name="description" content="Un percorso didattico interattivo su intelligenza artificiale, cognizione e autonomia del pensiero. Documenti, quiz, glossario e dibattiti." />
+		<meta name="robots" content="index, follow" />
 		<title>Il Fattore Disumano — Il pensiero resta tuo</title>
+
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Il Fattore Disumano" />
+		<meta property="og:locale" content="it_IT" />
+		<meta property="og:title" content="Il Fattore Disumano — Il pensiero resta tuo" />
+		<meta property="og:description" content="Comprendere l’IA senza delegare la mente: un percorso tra cognizione, linguaggio e potere per studenti e docenti." />
+		<meta property="og:image" content="/og-image.png" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content="Il Fattore Disumano — Il pensiero resta tuo" />
+
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="Il Fattore Disumano — Il pensiero resta tuo" />
+		<meta name="twitter:description" content="Comprendere l’IA senza delegare la mente: un percorso tra cognizione, linguaggio e potere per studenti e docenti." />
+		<meta name="twitter:image" content="/og-image.png" />
+
+		<link rel="icon" href="/favicon.ico" sizes="any" />
+		<link rel="icon" href="/icon.svg" type="image/svg+xml" />
+		<link rel="apple-touch-icon" href="/icon-192.png" />
+		<link rel="manifest" href="/manifest.webmanifest" />
+
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "Course",
+				"name": "Il Fattore Disumano — Il pensiero resta tuo",
+				"description": "Percorso didattico interattivo su intelligenza artificiale, cognizione e autonomia del pensiero.",
+				"inLanguage": "it",
+				"isAccessibleForFree": true,
+				"teaches": ["Pensiero critico", "Uso consapevole dell'IA", "Cognizione e delega"],
+				"provider": {
+					"@type": "Person",
+					"name": "prof. Riefolo Giovanni",
+					"jobTitle": "Docente IRC",
+					"affiliation": {
+						"@type": "EducationalOrganization",
+						"name": "Ferraris-Fermi di Verona"
+					}
+				}
+			}
+		</script>
+
+		<script>
+			(function () {
+				try {
+					var stored = JSON.parse(localStorage.getItem("fd-theme") || "null");
+					var theme =
+						stored === "light" || stored === "dark"
+							? stored
+							: window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+								? "light"
+								: "dark";
+					document.documentElement.dataset.theme = theme;
+					var meta = document.querySelector('meta[name="theme-color"]');
+					if (meta) meta.setAttribute("content", theme === "light" ? "#f6f4ea" : "#11191d");
+				} catch (error) {
+					document.documentElement.dataset.theme = "dark";
+				}
+			})();
+		</script>
 	</head>
 	<body>
 		<div id="root"></div>

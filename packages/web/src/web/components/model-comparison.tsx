@@ -16,16 +16,10 @@ import "./model-comparison.css";
 type Work = {
   choices: (number | null)[];
   submitted: boolean[];
-  reflection: string;
-  checks: boolean[];
-  reviewed: boolean;
 };
 const emptyWork = (): Work => ({
   choices: [null, null],
   submitted: [false, false],
-  reflection: "",
-  checks: [false, false, false],
-  reviewed: false,
 });
 const stages = ["Il punto di partenza", "Il processo", "Senza supporto"];
 
@@ -43,9 +37,7 @@ export function ModelComparison() {
       [scenario.id]: { ...(prev[scenario.id] || emptyWork()), ...patch },
     }));
   const answered = work.submitted.filter(Boolean).length;
-  const completed = scenarios.filter(
-    (s) => works[s.id]?.submitted.every(Boolean) && works[s.id]?.reviewed,
-  ).length;
+  const completed = scenarios.filter((s) => works[s.id]?.submitted.every(Boolean)).length;
   const switchScenario = (i: number) => {
     setScenarioIndex(i);
     setStage(0);
@@ -64,7 +56,7 @@ export function ModelComparison() {
         </div>
         <span className="compare-counter">
           <Target size={18} />
-          <b>{completed}/3</b> attività completate
+          <b>{completed}/{scenarios.length}</b> attività completate
         </span>
       </div>
       <div className="scenario-selector" aria-label="Scegli lo scenario">
@@ -78,7 +70,7 @@ export function ModelComparison() {
             <span>0{i + 1}</span>
             {s.name}
             <span className="scenario-status">
-              {works[s.id]?.reviewed && works[s.id]?.submitted.every(Boolean) ? (
+              {works[s.id]?.submitted.every(Boolean) ? (
                 <Check size={15} />
               ) : (
                 <ArrowRight size={15} />
@@ -263,9 +255,11 @@ export function ModelComparison() {
           <div>
             <span className="eyebrow">ORA TOCCA A TE / {scenario.name.toUpperCase()}</span>
             <h3>Dalla lettura alla prova.</h3>
-            <p>Applica la distinzione, poi spiega il ragionamento con parole tue.</p>
+            <p>Applica la distinzione e confronta le risposte.</p>
           </div>
-          <span className="activity-count">{answered}/2 risposte esplorate</span>
+          <span className="activity-count">
+            {answered}/{scenario.questions.length} risposte esplorate
+          </span>
         </div>
         <div className="guided-questions">
           {scenario.questions.map((q, qi) => (
@@ -334,80 +328,10 @@ export function ModelComparison() {
             </div>
           ))}
         </div>
-        <div className="reflection-workspace">
-          <div className="reflection-copy">
-            <span className="label">03 · RENDI VISIBILE IL TUO RAGIONAMENTO</span>
-            <h4>Non basta scegliere. Prova a spiegare.</h4>
-            <p>{scenario.reflection}</p>
-            <div className="reflection-tip">
-              <Lightbulb size={17} />
-              <span>
-                Non c’è una valutazione automatica del testo. Usa i criteri per rileggere la tua
-                spiegazione.
-              </span>
-            </div>
-          </div>
-          <div className="reflection-editor">
-            <label htmlFor="compare-reflection">La tua spiegazione</label>
-            <textarea
-              id="compare-reflection"
-              aria-label="La tua spiegazione"
-              value={work.reflection}
-              onChange={(e) =>
-                changeWork({
-                  reflection: e.target.value,
-                  reviewed: false,
-                  checks: [false, false, false],
-                })
-              }
-              placeholder="Scrivi i passaggi del tuo ragionamento…"
-            />
-            <fieldset>
-              <legend>Rileggi e indica i criteri che hai soddisfatto</legend>
-              {scenario.criteria.map((criterion, i) => (
-                <label key={criterion}>
-                  <input
-                    type="checkbox"
-                      aria-label={criterion}
-                    checked={work.checks[i]}
-                    onChange={(e) =>
-                      changeWork({
-                        checks: work.checks.map((v, j) => (j === i ? e.target.checked : v)),
-                        reviewed: false,
-                      })
-                    }
-                  />
-                  <span>{criterion}</span>
-                </label>
-              ))}
-            </fieldset>
-            <button
-              className="primary"
-              disabled={!work.reflection.trim() || !work.checks.some(Boolean)}
-              onClick={() => changeWork({ reviewed: true })}
-            >
-              Fai il punto <ArrowRight size={16} />
-            </button>
-            {work.reviewed && (
-              <div className="reflection-feedback" aria-live="polite">
-                <strong>
-                  {work.checks.every(Boolean)
-                    ? "Hai completato la rilettura con tutti i criteri."
-                    : "Hai individuato da dove continuare."}
-                </strong>
-                <p>
-                  {work.checks.every(Boolean)
-                    ? "Adesso prova a spiegare lo stesso concetto a voce, senza leggere. I criteri sono un’autovalutazione, non un voto sulla qualità del testo."
-                    : `Per rafforzare la spiegazione, torna su: ${scenario.criteria.filter((_, i) => !work.checks[i]).join(" ")} Questo feedback si basa sui criteri che hai selezionato.`}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
         <div className="activity-footer">
           <p>
-            Risposte e riflessioni restano disponibili mentre esplori questi scenari. Non vengono
-            salvate dopo la chiusura del laboratorio.
+            Le risposte restano disponibili mentre esplori questi scenari. Non vengono salvate dopo
+            la chiusura del laboratorio.
           </p>
           <button onClick={() => switchScenario((scenarioIndex + 1) % scenarios.length)}>
             Passa a {scenarios[(scenarioIndex + 1) % scenarios.length].name.toLowerCase()}

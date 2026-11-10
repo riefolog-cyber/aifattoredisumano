@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import content from "../data/documents.json";
 import { PageHeading } from "../components/page-heading";
 
@@ -49,19 +49,9 @@ export function DocumentsSection({
             </button>
           ))}
         </div>
-        <div className="doc-toolbar-actions">
-          <a
-            className="text-button"
-            href="/digimap-fattore-disumano.html"
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            Mappa concettuale <ArrowUpRight size={15} />
-          </a>
-          <button className="text-button" onClick={onOpenSearch}>
-            <Search size={17} /> Cerca nei testi
-          </button>
-        </div>
+        <button className="text-button" onClick={onOpenSearch}>
+          <Search size={17} /> Cerca nei testi
+        </button>
       </div>
       <div className="reader-layout">
         <aside className="reader-sidebar">

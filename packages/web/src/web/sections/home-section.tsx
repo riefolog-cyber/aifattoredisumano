@@ -139,17 +139,36 @@ export function HomeSection({
             <div>
               <div className="eyebrow">ESPLORA · COMPRENDI · METTI IN DISCUSSIONE</div>
               <h2>Una mappa per orientarsi.</h2>
-              <a
-                className="text-button concept-map-link"
-                href="/digimap-fattore-disumano.html"
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                Apri la mappa concettuale interattiva <ArrowUpRight size={16} />
-              </a>
             </div>
             <span className="small-muted">IL PERCORSO / 01—06</span>
           </div>
+          <a
+            className="concept-map-card"
+            href="/digimap-fattore-disumano.html"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            <span className="concept-map-shot">
+              <img
+                src="/images/mappa-concettuale.jpg"
+                alt="Anteprima della mappa concettuale interattiva del percorso"
+                loading="lazy"
+                decoding="async"
+              />
+              <span className="concept-map-badge">MAPPA CONCETTUALE · INTERATTIVA</span>
+            </span>
+            <span className="concept-map-copy">
+              <span className="eyebrow">UNA VISIONE D’INSIEME</span>
+              <strong>Esplora la mappa concettuale del percorso</strong>
+              <span>
+                Collegamenti tra cognizione, linguaggio, potere e autonomia: apri la mappa
+                interattiva per orientarti tra i temi e approfondirli.
+              </span>
+              <span className="concept-map-action">
+                Apri la mappa <ArrowUpRight size={17} />
+              </span>
+            </span>
+          </a>
           <div className="chapter-list">
             {CHAPTERS.map(([title, description, tag, index]) => (
               <button key={index} className="chapter-row" onClick={() => onRead(1, index)}>

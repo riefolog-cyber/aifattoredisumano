@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, type Dispatch, type SetStateAction } from "react";
 import { ArrowRight, Check, Download, Layers, ListChecks } from "lucide-react";
-import { quiz } from "../data/quiz";
+import { quiz, quizAreas } from "../data/quiz";
 import { PageHeading } from "../components/page-heading";
 import { downloadText } from "../lib/download";
 import {
@@ -27,6 +27,38 @@ type LabSectionProps = {
   onBestScore: Dispatch<SetStateAction<number | null>>;
 };
 
+function AreaSummary({ answers }: { answers: (number | undefined)[] }) {
+  const summary = quizAreas
+    .map((area) => {
+      const indices = quiz
+        .map((item, index) => (item.area === area ? index : -1))
+        .filter((index) => index >= 0);
+      const wrong = indices.filter((index) => answers[index] !== quiz[index].correct);
+      return { area, total: indices.length, wrong: wrong.length };
+    })
+    .filter((entry) => entry.total > 0);
+  const weak = summary.filter((entry) => entry.wrong > 0);
+  return (
+    <div className="quiz-areas" aria-live="polite">
+      <span className="label">DOVE CONCENTRARTI</span>
+      {weak.length === 0 ? (
+        <p className="areas-ok">Nessun punto debole: hai colto tutte le aree del percorso.</p>
+      ) : (
+        <ul>
+          {weak.map((entry) => (
+            <li key={entry.area}>
+              <strong>{entry.area}</strong>
+              <span>
+                {entry.wrong} da rivedere su {entry.total}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }: LabSectionProps) {
   const [progress, setProgress] = useStored<QuizProgress>(STORAGE_KEYS.quiz, emptyQuizProgress);
   const answers = progress.answers;
@@ -41,7 +73,7 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
 
   const exportResult = () => {
     const lines = [
-      "IL FATTORE DISUMANO — ESITO DELL'AUTOVERIFICA",
+      "IL FATTORE UMANO — ESITO DELL'AUTOVERIFICA",
       new Date().toLocaleString("it-IT"),
       `Punteggio: ${score}/${quiz.length}`,
       "",
@@ -55,7 +87,7 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
         ].join("\n");
       }),
     ];
-    downloadText("il-fattore-disumano-esito.txt", lines.join("\n\n"));
+    downloadText("il-fattore-umano-esito.txt", lines.join("\n\n"));
   };
 
   return (
@@ -109,6 +141,7 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
                 Rileggi le spiegazioni e torna ai capitoli per approfondire. Miglior risultato
                 salvato in questo browser: {bestScore ?? score}/10.
               </p>
+              <AreaSummary answers={answers} />
               <div className="results-review">
                 {quiz.map((item, index) => (
                   <details key={item.q}>

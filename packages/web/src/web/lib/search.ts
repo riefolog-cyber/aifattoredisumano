@@ -17,23 +17,27 @@ export function makeSnippet(text: string, query: string, size = 300) {
   return text.slice(start, start + size) + "…";
 }
 
+export const MAX_SEARCH_RESULTS = 60;
+
 export function searchDocuments(
   documents: readonly SearchDocument[],
   query: string,
+  limit = MAX_SEARCH_RESULTS,
 ): SearchResult[] {
   const term = query.toLowerCase().trim();
   if (term.length < 2) return [];
-  return documents.flatMap((document, di) =>
-    document.sections.flatMap((section, si) =>
-      section.paragraphs
-        .filter((paragraph) => paragraph.text.toLowerCase().includes(term))
-        .map((paragraph) => ({
-          di,
-          si,
-          title: section.title,
-          doc: document.name,
-          text: paragraph.text,
-        })),
-    ),
-  );
+  const results: SearchResult[] = [];
+  for (let di = 0; di < documents.length; di++) {
+    const document = documents[di];
+    for (let si = 0; si < document.sections.length; si++) {
+      const section = document.sections[si];
+      for (const paragraph of section.paragraphs) {
+        if (paragraph.text.toLowerCase().includes(term)) {
+          results.push({ di, si, title: section.title, doc: document.name, text: paragraph.text });
+          if (results.length >= limit) return results;
+        }
+      }
+    }
+  }
+  return results;
 }

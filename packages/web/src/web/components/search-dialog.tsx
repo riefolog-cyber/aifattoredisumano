@@ -1,8 +1,9 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { ArrowUpRight, Search, X } from "lucide-react";
-import { makeSnippet, type SearchResult } from "../lib/search";
+import { MAX_SEARCH_RESULTS, makeSnippet, type SearchResult } from "../lib/search";
 
 type SearchDialogProps = {
+  highlightQuery: string;
   query: string;
   results: SearchResult[];
   onQueryChange: (value: string) => void;
@@ -14,6 +15,7 @@ const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), a[href], select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function SearchDialog({
+  highlightQuery,
   query,
   results,
   onQueryChange,
@@ -88,16 +90,16 @@ export function SearchDialog({
           ) : (
             <>
               <div className="search-count" role="status" aria-live="polite">
-                {results.length} passaggi trovati
+                {results.length >= MAX_SEARCH_RESULTS ? `Primi ${results.length} passaggi — affina la ricerca` : `${results.length} passaggi trovati`}
               </div>
               {results.map((result, index) => (
-                <button key={index} onClick={() => onSelect(result)}>
+                <button key={`${result.di}-${result.si}-${index}`} onClick={() => onSelect(result)}>
                   <span className="label">
                     {result.doc} · CAPITOLO {result.si + 1}
                   </span>
                   <h3>{result.title.replace(/^\d+\. /, "")}</h3>
                   <p>
-                    {result.text.length > 300 ? makeSnippet(result.text, query) : result.text}
+                    {result.text.length > 300 ? makeSnippet(result.text, highlightQuery) : result.text}
                   </p>
                   <span className="result-link">
                     Apri il capitolo <ArrowUpRight size={14} />

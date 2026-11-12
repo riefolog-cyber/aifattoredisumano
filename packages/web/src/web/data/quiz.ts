@@ -1,5 +1,17 @@
-export const quiz = [
+export const quizAreas = [
+  "Strumenti e metafore",
+  "Delega e autonomia",
+  "Pratiche di studio",
+  "Linguaggio e voce",
+  "Potere e infrastrutture",
+  "Tempo e giudizio",
+] as const;
+
+export type QuizArea = (typeof quizAreas)[number];
+
+export const quiz: { q: string; a: string[]; correct: number; explanation: string; area: QuizArea }[] = [
   {
+    area: "Strumenti e metafore",
     q: "Che cosa distingue una «bussola» dalla metafora della riprogrammazione?",
     a: [
       "La prima è uno strumento esterno; la seconda sottolinea l’influenza sui modi di pensare.",
@@ -11,6 +23,7 @@ export const quiz = [
       "Nella guida, la bussola rappresenta la neutralità dello strumento. La riprogrammazione invita invece a interrogarsi su come l’uso della tecnologia influenzi abitudini e processi cognitivi.",
   },
   {
+    area: "Delega e autonomia",
     q: "Che cosa indica il «debito epistemico» nel testo?",
     a: [
       "Il costo economico di un abbonamento all’IA.",
@@ -22,17 +35,19 @@ export const quiz = [
       "È una metafora: ottenere subito il prodotto non significa aver acquisito il procedimento. La verifica decisiva è riuscire a ragionare anche senza lo strumento.",
   },
   {
-    q: "Un tutor socratico dovrebbe…",
+    area: "Pratiche di studio",
+    q: "Quando un tutor socratico fa bene a farsi da parte?",
     a: [
-      "Fornire immediatamente il risultato corretto.",
-      "Evitare ogni suggerimento.",
-      "Offrire domande e indizi lasciando allo studente il ragionamento.",
+      "Quando lo studente chiede la soluzione completa.",
+      "Quando lo studente riesce a proseguire da solo: il sostegno va ridotto fino a sparire.",
+      "Mai: l’aiuto deve restare sempre uguale dall’inizio alla fine.",
     ],
-    correct: 2,
+    correct: 1,
     explanation:
-      "Lo scaffolding sostiene il processo senza sostituirlo. Il supporto viene progressivamente ridotto per favorire l’autonomia.",
+      "Lo scaffolding è temporaneo per definizione: sostiene il processo finché serve e si ritira gradualmente. Un aiuto che non si toglie mai diventa dipendenza, non autonomia.",
   },
   {
+    area: "Delega e autonomia",
     q: "Perché la metafora dell’escavatore è problematica a scuola?",
     a: [
       "Perché conta la formazione delle competenze, non soltanto il prodotto finale.",
@@ -44,6 +59,7 @@ export const quiz = [
       "In un cantiere conta ottenere una buca. A scuola contano anche i tentativi, gli errori e le competenze che il compito permette di costruire.",
   },
   {
+    area: "Linguaggio e voce",
     q: "Che cosa rappresenta l’«effetto gelato industriale»?",
     a: [
       "Un errore grammaticale ricorrente.",
@@ -55,6 +71,7 @@ export const quiz = [
       "La metafora descrive una qualità espressiva: correttezza formale e uniformità possono coesistere. È una tesi critica dei documenti, non una proprietà di ogni testo generato.",
   },
   {
+    area: "Linguaggio e voce",
     q: "L’«antropofonia», nel glossario, è…",
     a: [
       "La traduzione automatica del linguaggio umano.",
@@ -66,6 +83,7 @@ export const quiz = [
       "Il termine invita a distinguere la fluidità del linguaggio dall’evidenza di un’esperienza cosciente.",
   },
   {
+    area: "Pratiche di studio",
     q: "Quale pratica protegge l’autonomia durante l’uso dell’IA?",
     a: [
       "Provare prima, chiedere un indizio e ricostruire poi il procedimento da soli.",
@@ -77,6 +95,7 @@ export const quiz = [
       "Tentativo autonomo, aiuto mirato e verifica senza supporto rendono visibile il processo di apprendimento, non soltanto l’output.",
   },
   {
+    area: "Potere e infrastrutture",
     q: "Nell’analisi sistemica, «feudalesimo digitale» indica…",
     a: [
       "La scomparsa di ogni infrastruttura fisica.",
@@ -88,6 +107,7 @@ export const quiz = [
       "È una categoria interpretativa del testo: il controllo di calcolo, dati ed energia può creare dipendenze e porre problemi di sovranità democratica.",
   },
   {
+    area: "Tempo e giudizio",
     q: "Che cosa evoca la metafora delle «pietre focaie»?",
     a: [
       "La trasmissione istantanea di informazioni.",
@@ -99,6 +119,7 @@ export const quiz = [
       "L’immagine valorizza l’attrito intellettuale e la discussione: la comprensione richiede confronto, tempo e partecipazione attiva.",
   },
   {
+    area: "Tempo e giudizio",
     q: "Come affrontare una tesi scientifica priva di fonte precisa?",
     a: [
       "Cercare la fonte primaria e distinguere risultati, interpretazioni e limiti.",

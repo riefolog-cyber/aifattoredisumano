@@ -9,6 +9,7 @@ import {
   Upload,
 } from "lucide-react";
 import content from "../data/documents.json";
+import { debateGuides } from "../data/debate-guides";
 import { PageHeading } from "../components/page-heading";
 import { downloadJson, downloadText } from "../lib/download";
 import { STORAGE_KEYS } from "../lib/site";
@@ -62,24 +63,26 @@ export function DebateSection() {
 
   const exportNotes = (format: "md" | "json") => {
     if (format === "json") {
-      downloadJson("il-fattore-disumano-appunti.json", {
+      downloadJson("il-fattore-umano-appunti.json", {
         exportedAt: new Date().toISOString(),
         notes: Object.fromEntries(
           content.debates.map((_, index) => [String(index), notes[index] || ""]),
         ),
       });
     } else {
+      const exportedOn = new Date().toLocaleString("it-IT");
       const markdown = content.debates
-        .map(
-          (item, index) =>
-            `## ${String(index + 1).padStart(2, "0")}. ${item.title}\n\n> ${item.question}\n\n${
-              notes[index]?.trim() || "(Nessun appunto)"
-            }\n`,
-        )
+        .map((item, index) => {
+          const body = notes[index]?.trim() || "(Nessun appunto)";
+          const words = body ? body.split(/\s+/).filter(Boolean).length : 0;
+          return `## ${String(index + 1).padStart(2, "0")}. ${item.title}\n\n> ${
+            item.question
+          }\n\n${body}\n\n*${words} parole*\n`;
+        })
         .join("\n---\n\n");
       downloadText(
-        "il-fattore-disumano-appunti.md",
-        `# Il Fattore Disumano — Appunti di dibattito\n\n${markdown}`,
+        "il-fattore-umano-appunti.md",
+        `# Il Fattore Umano — Appunti di dibattito\n\n*Esportato il ${exportedOn}*\n\n${markdown}`,
         "text/markdown;charset=utf-8",
       );
     }
@@ -212,6 +215,22 @@ export function DebateSection() {
             </div>
           </header>
           <blockquote className="debate-question">{content.debates[debate].question}</blockquote>
+          <details className="debate-guide">
+            <summary>
+              <span>Guida per l'aula · {debateGuides[debate].duration}</span>
+              <span className="matrix-summary-hint">{debateGuides[debate].setting}</span>
+            </summary>
+            <ol>
+              {debateGuides[debate].steps.map((step) => (
+                <li key={step.title}>
+                  <strong>{step.title}</strong>
+                  <span className="guide-minutes">{step.minutes} min</span>
+                  <p>{step.text}</p>
+                </li>
+              ))}
+            </ol>
+            <p className="guide-closing">{debateGuides[debate].closing}</p>
+          </details>
           <div className="debate-method">
             <span className="label">METODO IN TRE MOSSE — TOCCA PER INSERIRE</span>
             <div className="method-cards">

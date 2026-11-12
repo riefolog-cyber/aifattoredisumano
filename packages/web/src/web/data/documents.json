@@ -621,6 +621,14 @@
       "meaning": "Lo sforzo mentale, la lentezza e la fatica procedurale necessari per elaborare concetti complessi, fondamentali per la formazione delle connessioni neurali."
     },
     {
+      "term": "Bussola",
+      "meaning": "Metafora dello strumento neutrale ed esterno: come una bussola orienta senza cambiare chi la impugna, così si è pensato alla tecnologia. I documenti la contrappongono alla riprogrammazione: l'IA generativa non si limita a orientare, ma modifica i processi neurali, il linguaggio e il pensiero di chi la usa."
+    },
+    {
+      "term": "Catechon",
+      "meaning": "Nozione teologico-politica ripresa nei documenti: l'argine che trattiene il caos. Lo Stato democratico è chiamato a esserlo, riaffermando la propria sovranità di fronte alla concentrazione del potere tecnologico."
+    },
+    {
       "term": "Debito Epistemico",
       "meaning": "L'accumulo progressivo di lacune concettuali dovuto alla costante delega del ragionamento a strumenti esterni."
     },
@@ -629,8 +637,16 @@
       "meaning": "Metafora usata per descrivere la produzione testuale dell'IA: sintatticamente corretta e levigata, ma priva di originalità, profondità ed esperienza vissuta."
     },
     {
+      "term": "Feudalesimo Digitale",
+      "meaning": "Categoria con cui l'analisi sistemica descrive la concentrazione del controllo su calcolo, dati ed energia nelle mani di poche piattaforme: una dipendenza che pone problemi di sovranità democratica."
+    },
+    {
       "term": "Homo Mechanicus",
       "meaning": "Concezione riduzionista dell'essere umano che sovrappone la mente umana a un elaboratore di dati e il linguaggio a una serie di parametri matematici."
+    },
+    {
+      "term": "Oracolo",
+      "meaning": "Modalità d'uso dell'IA in cui si chiede una risposta pronta e completa. Produce risultati eccellenti finché la macchina è attiva, ma crea un'illusione di competenza: rimossa la tecnologia, resta un vuoto cognitivo. Nel laboratorio è una delle tre strade a confronto, con l'autonomia e l'uso socratico."
     },
     {
       "term": "Potatura Neurale (  Neural Pruning  )",

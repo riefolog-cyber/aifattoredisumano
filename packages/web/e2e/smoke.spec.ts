@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Il Fattore Disumano", () => {
+test.describe("Il Fattore Umano", () => {
   test("la home mostra contenuto, credito autore e navigazione", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Il pensiero resta");
@@ -88,16 +88,16 @@ test.describe("Il Fattore Disumano", () => {
     await expect(page.getByRole("button", { name: /Esporta l.esito/ })).toBeVisible();
   });
 
-  test("il confronto dei modelli ha dieci attività senza la tappa 03", async ({ page }) => {
+  test("il confronto dei modelli ha dodici attività senza la tappa 03", async ({ page }) => {
     await page.goto("/#/laboratorio");
-    await expect(page.locator(".scenario-selector button")).toHaveCount(10);
+    await expect(page.locator(".subject-grid button")).toHaveCount(12);
     await expect(page.locator(".comparison-lab")).not.toContainText("RENDI VISIBILE");
     await expect(page.locator(".reflection-workspace")).toHaveCount(0);
-    await expect(page.locator(".compare-counter")).toContainText("0/10");
+    await expect(page.locator(".compare-counter")).toContainText("0/12");
     await expect(page.locator(".guided-question")).toHaveCount(2);
-    await page.locator(".scenario-selector button").nth(9).click();
+    await page.locator(".subject-grid button").nth(11).click();
     await expect(page.locator(".scenario-brief h3")).toHaveText(
-      "Due percentuali di seguito non si sommano.",
+      "Descrivi ciò che vedi, non ciò che sai.",
     );
   });
 
@@ -121,7 +121,7 @@ test.describe("Il Fattore Disumano", () => {
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: "Esporta tutti gli appunti" }).first().click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe("il-fattore-disumano-appunti.md");
+    expect(download.suggestedFilename()).toBe("il-fattore-umano-appunti.md");
 
     await page.reload();
     await expect(notes).toHaveValue("La mia tesi di prova.");

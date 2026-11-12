@@ -29,14 +29,14 @@ export function SiteHeader({
 
   return (
     <header className="header">
-      <button className="brand" onClick={() => go("Percorso")} aria-label="Il Fattore Disumano, home">
+      <button className="brand" onClick={() => go("Percorso")} aria-label="Il Fattore Umano, home">
         <span className="brand-icon">
           <Brain size={24} />
         </span>
         <span>
           IL FATTORE
           <br />
-          <b>DISUMANO</b>
+          <b>UMANO</b>
         </span>
       </button>
       <nav className={mobileMenu ? "nav open" : "nav"} aria-label="Navigazione principale">

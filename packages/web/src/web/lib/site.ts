@@ -7,7 +7,7 @@ export const YOUTUBE_URL = "https://www.youtube.com/watch?v=szGJP-uXSaM";
 export const YOUTUBE_THUMB = "https://i.ytimg.com/vi/szGJP-uXSaM/maxresdefault.jpg";
 export const YOUTUBE_THUMB_FALLBACK = "https://i.ytimg.com/vi/szGJP-uXSaM/hqdefault.jpg";
 
-export const TABS = ["Percorso", "Documenti", "Laboratorio", "Glossario", "Dibattito"] as const;
+export const TABS = ["Percorso", "Documenti", "Laboratorio", "Glossario", "Dibattito", "Docenti"] as const;
 export type Tab = (typeof TABS)[number];
 
 export const TAB_SLUGS: Record<Tab, string> = {
@@ -16,15 +16,28 @@ export const TAB_SLUGS: Record<Tab, string> = {
   Laboratorio: "laboratorio",
   Glossario: "glossario",
   Dibattito: "dibattito",
+  Docenti: "docenti",
 };
 
 export const PAGE_TITLES: Record<Tab, string> = {
-  Percorso: "Il Fattore Disumano — Il pensiero resta tuo",
-  Documenti: "Documenti — Il Fattore Disumano",
-  Laboratorio: "Laboratorio — Il Fattore Disumano",
-  Glossario: "Glossario — Il Fattore Disumano",
-  Dibattito: "Dibattito — Il Fattore Disumano",
+  Percorso: "Il Fattore Umano — Il pensiero resta tuo",
+  Documenti: "Documenti — Il Fattore Umano",
+  Laboratorio: "Laboratorio — Il Fattore Umano",
+  Glossario: "Glossario — Il Fattore Umano",
+  Dibattito: "Dibattito — Il Fattore Umano",
+  Docenti: "Per i docenti — Il Fattore Umano",
 };
+
+/**
+ * Sezioni estratte dai DOCX ma nascoste alla lettura: il glossario in coda
+ * alla Guida didattica duplica la sezione Glossario dedicata, che resta
+ * l'unico punto di accesso ai termini. documents.json resta intatto.
+ */
+export const HIDDEN_SECTIONS: ReadonlySet<string> = new Set(["0:5", "1:4"]);
+
+export function isSectionVisible(docIndex: number, sectionIndex: number) {
+  return !HIDDEN_SECTIONS.has(`${docIndex}:${sectionIndex}`);
+}
 
 export const STORAGE_KEYS = {
   completed: "fd-completed",
@@ -35,13 +48,32 @@ export const STORAGE_KEYS = {
 } as const;
 
 export const CHAPTERS = [
-  ["La bussola e la mente", "Ripensare la neutralità della tecnologia.", "ORIENTAMENTO", 0],
-  ["Il costo della delega", "Attrito cognitivo, apprendimento e autonomia.", "COGNIZIONE", 1],
-  ["Le parole che ci somigliano", "Linguaggio, antropofonia e omologazione.", "LINGUAGGIO", 2],
-  ["Chi governa l’algoritmo?", "Potere, infrastrutture e sovranità digitale.", "POTERE", 3],
-  ["Riprendersi il tempo", "Memoria, lentezza e pensiero prospettico.", "TEMPORALITÀ", 4],
-  ["Dall’oracolo al dialogo", "Pratiche per un uso consapevole dell’IA.", "PROSPETTIVE", 5],
+  ["La bussola e la mente", "Ripensare la neutralità della tecnologia.", "ORIENTAMENTO", 1, 0],
+  ["Il costo della delega", "Attrito cognitivo, apprendimento e autonomia.", "COGNIZIONE", 1, 1],
+  ["Le parole che ci somigliano", "Linguaggio, antropofonia e omologazione.", "LINGUAGGIO", 1, 2],
+  ["Chi governa l’algoritmo?", "Potere, infrastrutture e sovranità digitale.", "POTERE", 1, 3],
+  ["Riprendersi il tempo", "Memoria, lentezza e pensiero prospettico.", "TEMPORALITÀ", 0, 3],
+  ["Dall’oracolo al dialogo", "Pratiche per un uso consapevole dell’IA.", "PROSPETTIVE", 1, 5],
 ] as const;
+
+export type ChapterRef = { doc: number; section: number };
+
+export function chapterKey(doc: number, section: number) {
+  return `${doc}:${section}`;
+}
+
+/**
+ * Normalizza i progressi salvati: le versioni precedenti usavano indici
+ * numerici del secondo documento, ora convertiti in chiavi "doc:sezione".
+ */
+export function normalizeCompleted(value: readonly (number | string)[]): string[] {
+  const out: string[] = [];
+  for (const item of value) {
+    const key = typeof item === "number" ? chapterKey(1, item) : item;
+    if (/^\d+:\d+$/.test(key) && !out.includes(key)) out.push(key);
+  }
+  return out;
+}
 
 export function tabFromHash(): Tab | null {
   if (typeof window === "undefined") return null;

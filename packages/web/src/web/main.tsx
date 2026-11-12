@@ -3,7 +3,6 @@
 // Font self-hosted (niente richieste a Google Fonts, disponibili anche offline).
 import "@fontsource/instrument-serif/latin-400.css";
 import "@fontsource/instrument-serif/latin-400-italic.css";
-import "@fontsource/poppins/latin-300.css";
 import "@fontsource/poppins/latin-400.css";
 import "@fontsource/poppins/latin-500.css";
 import "@fontsource/poppins/latin-600.css";

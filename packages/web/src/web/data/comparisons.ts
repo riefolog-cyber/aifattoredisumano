@@ -456,9 +456,9 @@ export const scenarios = [
         title: "Evita l’errore tipico",
         prompt: "Un’auto percorre 120 km in 2 h e 60 km in 2 h. Qual è la velocità media corretta?",
         options: [
-          "45 km/h, perché (120+60)/(2+2) = 45.",
-          "60 km/h, perché (60+30)/2 = 45? No: la media semplice delle velocità è fuorviante.",
-          "45 km/h: 180 km in 4 h.",
+          "60 km/h, la media semplice delle velocità dei due tratti (60 e 30).",
+          "30 km/h, la velocità del tratto più lento.",
+          "45 km/h: 180 km in 4 h, cioè distanza totale diviso tempo totale.",
         ],
         correct: 2,
         feedback:
@@ -890,6 +890,180 @@ export const scenarios = [
         correct: 1,
         feedback:
           "Dopo il primo sconto la base diventa 60 €, quindi il 10% vale 6 € e non 8 €. Sommare le percentuali ignora questo cambio di base: 35% di 80 € darebbe 52 €, diverso da 54 €.",
+      },
+    ],
+  },
+  {
+    id: "english",
+    name: "Inglese",
+    subject: "TRADURRE O CAPIRE",
+    title: "«Actually» non significa «attualmente». Spesso.",
+    task: "Traduci il paragrafo: «Mark is a sensible boy. Actually, he rarely acts without thinking about the consequences. Eventually, his classmates learned to trust his judgement.» Evita i falsi amici e spiega le tue scelte.",
+    goal: "Riconoscere i falsi amici e giustificare le scelte di traduzione con contesto e dizionario.",
+    paths: [
+      [
+        {
+          title: "Individua i trabocchetti",
+          text: "Leggi tutto il paragrafo prima di tradurre. Sottolinea actually, sensible, eventually: sembrano parole italiane ma non lo sono. Ipotizza il senso dal contesto.",
+          action: "Segna i falsi amici e ipotizza il significato.",
+        },
+        {
+          title: "Verifica e traduci",
+          text: "Sensible significa assennato, actually significa in realtà, eventually significa alla fine: il dizionario conferma. Ricostruisci: «Mark è un ragazzo assennato. In realtà, raramente agisce senza pensare alle conseguenze. Alla fine, i compagni impararono a fidarsi del suo giudizio.»",
+          action: "Traduci motivando ogni scelta.",
+        },
+        {
+          title: "Trasferisci il metodo",
+          text: "Senza aiuto: «The library is actually closed; the sensible thing is to return eventually with a reservation.» Traduci ed evidenzia dove hai dubitato e come hai risolto.",
+          action: "Applica la procedura a un testo nuovo.",
+        },
+      ],
+      [
+        {
+          title: "Chiedi dove guardare",
+          text: "«Non tradurre per me. Chiedimi: quale parola sembra italiana? Che cosa suggerisce il contesto per actually?»",
+          action: "Fatti guidare verso i punti critici.",
+        },
+        {
+          title: "Rispondi con prove",
+          text: "«Se actually significasse attualmente, la frase avrebbe senso? Che cosa dice il dizionario per sensible ed eventually?»",
+          action: "Motiva ogni scelta con contesto e fonti.",
+        },
+        {
+          title: "Traduci da solo",
+          text: "Senza altri indizi, traduci il secondo brano e segnala dove hai dubitato e come hai sciolto il dubbio.",
+          action: "Rendi visibili dubbi e soluzioni.",
+        },
+      ],
+      [
+        {
+          title: "Chiedi la traduzione",
+          text: "«Traduci questo paragrafo in italiano.»",
+          action: "Deleghi scelte lessicali e sfumature a una risposta pronta.",
+        },
+        {
+          title: "Leggi una versione fluida",
+          text: "«Mark è un ragazzo sensibile. Attualmente, raramente agisce senza pensare alle conseguenze.» È scorrevole, ma sensibile e attualmente sono falsi amici: il senso cambia senza che te ne accorga.",
+          action: "Controlla soprattutto i punti che sembrano ovvi.",
+        },
+        {
+          title: "Correggi e spiega",
+          text: "Senza copiare, riscrivi la traduzione correggendo i falsi amici e spiega perché la prima versione ingannava.",
+          action: "Trasforma l'errore in competenza.",
+        },
+      ],
+    ],
+    questions: [
+      {
+        title: "Riconosci il falso amico",
+        prompt: "In «Mark is a sensible boy», sensible significa…",
+        options: [
+          "Sensibile, emotivo.",
+          "Assennato, ragionevole.",
+          "Sensazionale, straordinario.",
+        ],
+        correct: 1,
+        feedback:
+          "Sensible significa assennato: il contesto lo conferma, perché Mark riflette prima di agire. Sensibile in inglese si dice sensitive.",
+      },
+      {
+        title: "Scegli il metodo",
+        prompt: "Quale comportamento protegge meglio l'autonomia?",
+        options: [
+          "Copiare la traduzione pronta e consegnarla.",
+          "Tradurre parola per parola senza mai rileggere.",
+          "Segnare i dubbi, controllare dizionario e contesto, rileggere il risultato.",
+        ],
+        correct: 2,
+        feedback:
+          "I dubbi segnalati e verificati diventano competenza: il controllo con dizionario e contesto e la rilettura finale distinguono una traduzione capita da una copiata.",
+      },
+    ],
+  },
+  {
+    id: "art",
+    name: "Arte",
+    subject: "GUARDARE NON È VEDERE",
+    title: "Descrivi ciò che vedi, non ciò che sai.",
+    task: "Osserva un'opera famosa (per esempio la Notte stellata di Van Gogh): elenca tre elementi che vedi davvero e tre che stai interpretando. Poi verifica con una fonte affidabile.",
+    goal: "Distinguere osservazione e interpretazione nella lettura di un'immagine.",
+    paths: [
+      [
+        {
+          title: "Descrivi senza interpretare",
+          text: "Guarda per un minuto senza leggere didascalie. Elenca solo ciò che vedi: colori, linee, figure. Niente significati, per ora: il cielo vorticoso è un fatto, l'angoscia è già un'idea.",
+          action: "Separa il visibile dal supposto.",
+        },
+        {
+          title: "Aggiungi il contesto",
+          text: "Ora leggi autore, data e tecnica. Quale dettaglio cambia senso con queste informazioni? Quale resta uguale? Il contesto arricchisce lo sguardo, non lo sostituisce.",
+          action: "Rileggi l'opera con le informazioni.",
+        },
+        {
+          title: "Verifica un'immagine quotidiana",
+          text: "Senza aiuto, applica lo stesso schema a un'immagine pubblicitaria: che cosa mostra davvero e che cosa vuole farti pensare? Le immagini di ogni giorno chiedono lo stesso rigore.",
+          action: "Trasferisci il metodo alle immagini quotidiane.",
+        },
+      ],
+      [
+        {
+          title: "Chiedi dove guardare",
+          text: "«Non dirmi che cosa significa. Chiedimi: dove va l'occhio per primo? Quali colori dominano? C'è qualcosa di strano o fuori posto?»",
+          action: "Fatti guidare l'osservazione, non la conclusione.",
+        },
+        {
+          title: "Dall'osservazione all'ipotesi",
+          text: "«Questo dettaglio che hai notato che cosa potrebbe suggerire? E come potresti verificarlo?» L'ipotesi nasce dallo sguardo, non lo precede.",
+          action: "Formula ipotesi e modi di verificarle.",
+        },
+        {
+          title: "Leggi da solo",
+          text: "Senza altri indizi, analizza una seconda immagine distinguendo i tre livelli: visto, supposto, verificato.",
+          action: "Applica i tre livelli in autonomia.",
+        },
+      ],
+      [
+        {
+          title: "Chiedi la spiegazione",
+          text: "«Spiegami quest'opera e il suo significato.»",
+          action: "Ricevi un'interpretazione confezionata al posto dello sguardo.",
+        },
+        {
+          title: "Leggi una lettura pronta",
+          text: "«La notte stellata esprime il tormento dell'artista.» È plausibile, ma è una sintesi altrui: non sai più distinguere ciò che hai osservato da ciò che hai letto.",
+          action: "Chiediti che cosa hai visto davvero tu.",
+        },
+        {
+          title: "Torna all'immagine",
+          text: "Nascondi la spiegazione e descrivi di nuovo l'opera partendo da zero: tre fatti visivi, poi il confronto con la lettura ricevuta.",
+          action: "Ricostruisci lo sguardo in prima persona.",
+        },
+      ],
+    ],
+    questions: [
+      {
+        title: "Separa vedere e supporre",
+        prompt: "Dire che «il cielo vorticoso esprime angoscia» è…",
+        options: [
+          "Un'osservazione: descrive solo ciò che si vede.",
+          "Un'interpretazione: attribuisce un'emozione a una forma.",
+          "Un dato tecnico: indica la tecnica pittorica.",
+        ],
+        correct: 1,
+        feedback:
+          "Il vortice si vede, l'angoscia si attribuisce: è una lettura possibile ma va distinta dal dato osservato e motivata con elementi dell'opera e del contesto.",
+      },
+      {
+        title: "Leggi un'immagine quotidiana",
+        prompt: "Una pubblicità mostra un atleta sorridente con una bevanda. Qual è la lettura più corretta?",
+        options: [
+          "La bevanda rende felici e atletici.",
+          "L'immagine associa il prodotto a salute e felicità: è una strategia, non una prova.",
+          "Le pubblicità non contengono messaggi.",
+        ],
+        correct: 1,
+        feedback:
+          "Come per un quadro, anche qui conta separare il visibile (atleta, bevanda, sorriso) dal messaggio costruito (se la bevi diventi così). Riconoscere la strategia è già difendersi.",
       },
     ],
   },

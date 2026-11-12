@@ -6,7 +6,7 @@ export function SiteFooter({ onOpenDocuments }: { onOpenDocuments: () => void })
     <footer className="footer">
       <div>
         <Brain size={19} />
-        <span>IL FATTORE DISUMANO</span>
+        <span>IL FATTORE UMANO</span>
       </div>
       <p>
         La tecnologia come strumento. Il pensiero come scelta.

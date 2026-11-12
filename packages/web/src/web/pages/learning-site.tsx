@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import content from "../data/documents.json";
 import { SearchDialog } from "../components/search-dialog";
 import { SiteFooter } from "../components/site-footer";
@@ -7,9 +7,17 @@ import { DebateSection } from "../sections/debate-section";
 import { DocumentsSection } from "../sections/documents-section";
 import { GlossarySection } from "../sections/glossary-section";
 import { HomeSection } from "../sections/home-section";
+import { TeachersSection } from "../sections/teachers-section";
 import { LabSection, type LabView } from "../sections/lab-section";
 import { searchDocuments, type SearchResult } from "../lib/search";
-import { STORAGE_KEYS, type Tab } from "../lib/site";
+import {
+  CHAPTERS,
+  STORAGE_KEYS,
+  chapterKey,
+  isSectionVisible,
+  normalizeCompleted,
+  type Tab,
+} from "../lib/site";
 import { applyTheme, initialTheme, type Theme } from "../lib/theme";
 import { useHashTab } from "../lib/use-hash-tab";
 import { useIdlePrefetch } from "../lib/use-idle-prefetch";
@@ -17,6 +25,17 @@ import { usePageMeta } from "../lib/use-page-meta";
 import { useStored } from "../lib/use-stored";
 
 const prefetchLaboratory = () => import("../components/model-comparison");
+
+/**
+ * La sezione glossario in coda alla Guida didattica è coperta dal tab
+ * Glossario: la si svuota per la ricerca mantenendo gli indici originali.
+ */
+const searchableDocuments = content.documents.map((document, di) => ({
+  ...document,
+  sections: document.sections.map((section, si) =>
+    isSectionVisible(di, si) ? section : { ...section, paragraphs: [] },
+  ),
+}));
 
 export default function LearningSite() {
   const [tab, navigate] = useHashTab("Percorso");
@@ -26,8 +45,16 @@ export default function LearningSite() {
   const [section, setSection] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [labView, setLabView] = useState<LabView>("confronto");
-  const [completed, setCompleted] = useStored<number[]>(STORAGE_KEYS.completed, []);
+  const [completedStored, setCompletedStored] = useStored<(number | string)[]>(
+    STORAGE_KEYS.completed,
+    [],
+  );
+  const completed = useMemo(() => normalizeCompleted(completedStored), [completedStored]);
+  const pathCompleted = CHAPTERS.filter(([, , , doc, section]) =>
+    completed.includes(chapterKey(doc, section)),
+  ).length;
   const [bestScore, setBestScore] = useStored<number | null>(STORAGE_KEYS.bestScore, null);
   const [theme, setTheme] = useStored<Theme>(STORAGE_KEYS.theme, initialTheme);
 
@@ -37,11 +64,14 @@ export default function LearningSite() {
     applyTheme(theme);
   }, [theme]);
 
-  const results = useMemo(() => searchDocuments(content.documents, query), [query]);
+  const results = useMemo(
+    () => searchDocuments(searchableDocuments, deferredQuery),
+    [deferredQuery],
+  );
 
   const go = (next: Tab) => {
     navigate(next);
-    window.scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   const read = (documentIndex: number, sectionIndex: number) => {
@@ -53,11 +83,10 @@ export default function LearningSite() {
 
   const selectResult = (result: SearchResult) => read(result.di, result.si);
 
-  const toggleComplete = (index: number) => {
-    setCompleted((current) =>
-      current.includes(index)
-        ? current.filter((value) => value !== index)
-        : [...current, index],
+  const toggleComplete = (key: string) => {
+    const next = normalizeCompleted(completedStored);
+    setCompletedStored(
+      next.includes(key) ? next.filter((value) => value !== key) : [...next, key],
     );
   };
 
@@ -78,7 +107,7 @@ export default function LearningSite() {
 
       <SiteHeader
         tab={tab}
-        completedCount={completed.length}
+        completedCount={pathCompleted}
         theme={theme}
         onNavigate={go}
         onToggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -126,9 +155,24 @@ export default function LearningSite() {
         />
       )}
 
-      {tab === "Glossario" && <GlossarySection />}
+      {tab === "Glossario" && <GlossarySection onRead={read} />}
 
       {tab === "Dibattito" && <DebateSection />}
+
+      {tab === "Docenti" && (
+        <TeachersSection
+          onNavigate={go}
+          onRead={read}
+          onOpenLab={() => {
+            setLabView("confronto");
+            go("Laboratorio");
+          }}
+          onStartQuiz={() => {
+            setLabView("quiz");
+            go("Laboratorio");
+          }}
+        />
+      )}
 
       <SiteFooter
         onOpenDocuments={() => {
@@ -140,6 +184,7 @@ export default function LearningSite() {
 
       {searchOpen && (
         <SearchDialog
+          highlightQuery={deferredQuery}
           query={query}
           results={results}
           onQueryChange={setQuery}

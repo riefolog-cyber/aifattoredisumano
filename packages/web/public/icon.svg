@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Il Fattore Disumano">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Il Fattore Umano">
 	<rect width="512" height="512" rx="112" fill="#11191d" />
 	<circle cx="256" cy="240" r="128" fill="none" stroke="#d5f86f" stroke-width="18" />
 	<path d="M256 112v256M176 184c48 0 80 28 80 56s-32 56-80 56M336 184c-48 0-80 28-80 56s32 56 80 56" fill="none" stroke="#d5f86f" stroke-width="14" stroke-linecap="round" />

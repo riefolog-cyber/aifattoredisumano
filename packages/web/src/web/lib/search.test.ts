@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { makeSnippet, searchDocuments, type SearchDocument } from "./search";
+import {
+  MAX_SEARCH_RESULTS,
+  makeSnippet,
+  searchDocuments,
+  type SearchDocument,
+} from "./search";
 
 const documents: SearchDocument[] = [
   {
@@ -45,6 +50,42 @@ describe("searchDocuments", () => {
 
   it("restituisce un array vuoto quando non c'è alcun passaggio", () => {
     expect(searchDocuments(documents, "algoritmo")).toEqual([]);
+  });
+
+  it("limita i risultati a MAX_SEARCH_RESULTS per non appesantire il DOM", () => {
+    const many: SearchDocument[] = [
+      {
+        name: "Documento lungo",
+        sections: [
+          {
+            title: "1. Capitolo",
+            paragraphs: Array.from({ length: MAX_SEARCH_RESULTS + 40 }, (_, i) => ({
+              text: `Paragrafo ${i} con parola comune presente ovunque`,
+            })),
+          },
+        ],
+      },
+    ];
+    const results = searchDocuments(many, "parola comune");
+    expect(results).toHaveLength(MAX_SEARCH_RESULTS);
+    expect(MAX_SEARCH_RESULTS).toBe(60);
+  });
+
+  it("rispetta un limite personalizzato", () => {
+    const many: SearchDocument[] = [
+      {
+        name: "Documento lungo",
+        sections: [
+          {
+            title: "1. Capitolo",
+            paragraphs: Array.from({ length: 10 }, (_, i) => ({
+              text: `Paragrafo ${i} con parola comune presente ovunque`,
+            })),
+          },
+        ],
+      },
+    ];
+    expect(searchDocuments(many, "parola comune", 3)).toHaveLength(3);
   });
 });
 

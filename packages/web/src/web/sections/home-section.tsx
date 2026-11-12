@@ -5,8 +5,11 @@ import {
   Check,
   FileText,
   FlaskConical,
+  GraduationCap,
   ListChecks,
+  MessagesSquare,
   Play,
+  TextQuote,
 } from "lucide-react";
 import { MindDiagram } from "../components/mind-diagram";
 import { AuthorCredit } from "../components/author-credit";
@@ -15,11 +18,12 @@ import {
   YOUTUBE_THUMB,
   YOUTUBE_THUMB_FALLBACK,
   YOUTUBE_URL,
+  chapterKey,
   type Tab,
 } from "../lib/site";
 
 type HomeSectionProps = {
-  completed: number[];
+  completed: string[];
   bestScore: number | null;
   onRead: (docIndex: number, section: number) => void;
   onNavigate: (tab: Tab) => void;
@@ -35,9 +39,10 @@ export function HomeSection({
   onStartQuiz,
   onOpenLab,
 }: HomeSectionProps) {
-  const nextChapter = completed.length
-    ? (CHAPTERS.find((chapter) => !completed.includes(chapter[3]))?.[3] ?? 0)
-    : 0;
+  const nextChapter =
+    CHAPTERS.find(([, , , doc, section]) => !completed.includes(chapterKey(doc, section))) ??
+    CHAPTERS[0];
+  const [, , , nextDoc, nextSection] = nextChapter;
 
   return (
     <main className="home-main" id="contenuto" tabIndex={-1}>
@@ -59,7 +64,7 @@ export function HomeSection({
             <br className="desktop-break" /> per studenti e docenti.
           </p>
           <div className="hero-actions">
-            <button className="primary" onClick={() => onRead(1, nextChapter)}>
+            <button className="primary" onClick={() => onRead(nextDoc, nextSection)}>
               Inizia il percorso <ArrowUpRight size={19} />
             </button>
             <button className="text-button" onClick={() => onNavigate("Documenti")}>
@@ -133,6 +138,63 @@ export function HomeSection({
         </div>
       </section>
 
+      <section className="guida-percorso" aria-label="Come affrontare il percorso">
+        <div className="section-heading">
+          <div>
+            <div className="eyebrow">DA DOVE COMINCIARE</div>
+            <h2>Il percorso in quattro mosse.</h2>
+          </div>
+          <span className="small-muted"> CIRCA 6 ORE</span>
+        </div>
+        <ol>
+          <li>
+            <span className="percorso-num">01</span>
+            <Play size={18} />
+            <div>
+              <strong>Guarda e lasciati interrogare</strong>
+              <p>Il video e la domanda di fondo: usi uno strumento o stai cambiando pensiero?</p>
+              <a className="inline-link" href={YOUTUBE_URL} target="_blank" rel="noreferrer noopener">
+                Vai al video <ArrowUpRight size={13} />
+              </a>
+            </div>
+          </li>
+          <li>
+            <span className="percorso-num">02</span>
+            <BookOpen size={18} />
+            <div>
+              <strong>Leggi i sei capitoli</strong>
+              <p>Due documenti integrali, dal falso mito della neutralità alle pratiche consapevoli.</p>
+              <button className="inline-link" onClick={() => onRead(nextDoc, nextSection)}>
+                {completed.length ? "Riprendi da dove eri" : "Inizia dal primo capitolo"}{" "}
+                <ArrowUpRight size={13} />
+              </button>
+            </div>
+          </li>
+          <li>
+            <span className="percorso-num">03</span>
+            <FlaskConical size={18} />
+            <div>
+              <strong>Sperimenta nel laboratorio</strong>
+              <p>Confronta tre modi di usare l'IA e verifica con 10 domande quanto hai compreso.</p>
+              <button className="inline-link" onClick={onOpenLab}>
+                Entra nel laboratorio <ArrowUpRight size={13} />
+              </button>
+            </div>
+          </li>
+          <li>
+            <span className="percorso-num">04</span>
+            <MessagesSquare size={18} />
+            <div>
+              <strong>Discuti in aula</strong>
+              <p>Cinque tracce con guida in tre mosse: tesi, obiezione, domanda aperta.</p>
+              <button className="inline-link" onClick={() => onNavigate("Dibattito")}>
+                Vai ai dibattiti <ArrowUpRight size={13} />
+              </button>
+            </div>
+          </li>
+        </ol>
+      </section>
+
       <section className="path-layout" id="percorso">
         <div className="path-section">
           <div className="section-heading">
@@ -144,7 +206,7 @@ export function HomeSection({
           </div>
           <a
             className="concept-map-card"
-            href={`${import.meta.env.BASE_URL}digimap-fattore-disumano.html`}
+                          href={`${import.meta.env.BASE_URL}digimap-fattore-umano.html`}
             target="_blank"
             rel="noreferrer noopener"
           >
@@ -170,10 +232,23 @@ export function HomeSection({
             </span>
           </a>
           <div className="chapter-list">
-            {CHAPTERS.map(([title, description, tag, index]) => (
-              <button key={index} className="chapter-row" onClick={() => onRead(1, index)}>
-                <span className={"chapter-number " + (completed.includes(index) ? "done" : "")}>
-                  {completed.includes(index) ? <Check size={20} /> : `0${index + 1}`}
+            {CHAPTERS.map(([title, description, tag, doc, section], order) => (
+              <button
+                key={chapterKey(doc, section)}
+                className="chapter-row"
+                onClick={() => onRead(doc, section)}
+              >
+                <span
+                  className={
+                    "chapter-number " +
+                    (completed.includes(chapterKey(doc, section)) ? "done" : "")
+                  }
+                >
+                  {completed.includes(chapterKey(doc, section)) ? (
+                    <Check size={20} />
+                  ) : (
+                    `0${order + 1}`
+                  )}
                 </span>
                 <span className="chapter-copy">
                   <span className="label">{tag}</span>
@@ -221,6 +296,41 @@ export function HomeSection({
             <ArrowRight size={18} />
           </button>
         </aside>
+      </section>
+
+      <section className="home-links" aria-label="Strumenti di approfondimento">
+        <div className="section-heading">
+          <div>
+            <div className="eyebrow">OLTRE LA LETTURA</div>
+            <h2>Strumenti per capire e discutere.</h2>
+          </div>
+        </div>
+        <div className="home-links-grid">
+          <button onClick={() => onNavigate("Glossario")}>
+            <TextQuote size={22} />
+            <strong>Glossario</strong>
+            <span>Dodici concetti chiave con rimandi ai capitoli in cui compaiono.</span>
+            <span className="home-link-go">
+              Apri il lessico <ArrowUpRight size={15} />
+            </span>
+          </button>
+          <button onClick={() => onNavigate("Dibattito")}>
+            <MessagesSquare size={22} />
+            <strong>Dibattito</strong>
+            <span>Cinque tracce con guida d'aula in tre mosse e appunti privati.</span>
+            <span className="home-link-go">
+              Vai alle tracce <ArrowUpRight size={15} />
+            </span>
+          </button>
+          <button onClick={() => onNavigate("Docenti")}>
+            <GraduationCap size={22} />
+            <strong>Per i docenti</strong>
+            <span>Obiettivi, tempi e valutazione per un percorso di sei ore in classe.</span>
+            <span className="home-link-go">
+              Leggi la guida <ArrowUpRight size={15} />
+            </span>
+          </button>
+        </div>
       </section>
     </main>
   );

@@ -59,25 +59,35 @@ export function ModelComparison() {
           <b>{completed}/{scenarios.length}</b> attività completate
         </span>
       </div>
-      <div className="scenario-selector" aria-label="Scegli lo scenario">
-        {scenarios.map((s, i) => (
-          <button
-            key={s.id}
-            className={scenarioIndex === i ? "selected" : ""}
-            aria-pressed={scenarioIndex === i}
-            onClick={() => switchScenario(i)}
-          >
-            <span>0{i + 1}</span>
-            {s.name}
-            <span className="scenario-status">
-              {works[s.id]?.submitted.every(Boolean) ? (
-                <Check size={15} />
-              ) : (
-                <ArrowRight size={15} />
-              )}
-            </span>
-          </button>
-        ))}
+      <div className="subject-index">
+        <span className="label" id="materie-label">
+          SCEGLI LA MATERIA · {scenarios.length} SCENARI
+        </span>
+        <div className="subject-grid" role="group" aria-labelledby="materie-label">
+          {scenarios.map((s, i) => {
+            const done = works[s.id]?.submitted.every(Boolean) ?? false;
+            return (
+              <button
+                key={s.id}
+                className={scenarioIndex === i ? "selected" : ""}
+                aria-pressed={scenarioIndex === i}
+                aria-label={`${s.name}, scenario ${i + 1} di ${scenarios.length}${done ? ", completato" : ""}`}
+                onClick={() => switchScenario(i)}
+              >
+                <span className="subject-num" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="subject-text">
+                  <strong>{s.name}</strong>
+                  <small>{s.subject}</small>
+                </span>
+                <span className={`scenario-status ${done ? "done" : ""}`}>
+                  {done ? <Check size={15} /> : <ArrowRight size={15} />}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
       <section className="scenario-brief" aria-label="Il compito comune">
         <div className="eyebrow">{scenario.subject}</div>

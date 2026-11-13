@@ -13,7 +13,7 @@ test.describe("Il Fattore Umano", () => {
   test("l'hash routing apre le sezioni e il tasto indietro torna alla home", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Documenti", exact: true }).click();
-    await expect(page).toHaveURL(/#\/documenti$/);
+    await expect(page).toHaveURL(/#\/documenti\/\d+\/\d+$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Leggi. Fermati. Interroga.");
 
     await page.getByRole("button", { name: "Glossario", exact: true }).click();
@@ -21,7 +21,7 @@ test.describe("Il Fattore Umano", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Un lessico del pensiero.");
 
     await page.goBack();
-    await expect(page).toHaveURL(/#\/documenti$/);
+    await expect(page).toHaveURL(/#\/documenti\/\d+\/\d+$/);
     await page.goBack();
     await expect(page).toHaveURL(/#\/percorso$/);
   });
@@ -40,12 +40,87 @@ test.describe("Il Fattore Umano", () => {
     await page.getByRole("button", { name: "Cerca nei documenti" }).click();
     const dialog = page.getByRole("dialog", { name: "Ricerca nei documenti" });
     await expect(dialog).toBeVisible();
-    const input = dialog.getByRole("textbox", { name: "Cerca nei documenti" });
+    const input = dialog.getByRole("combobox", { name: "Cerca nei documenti" });
     await expect(input).toBeFocused();
     await input.fill("pensiero");
     await expect(dialog.getByRole("status")).toContainText("passaggi trovati");
     await input.press("Escape");
     await expect(dialog).toBeHidden();
+    await expect(page.locator(".search-button")).toBeFocused();
+  });
+
+  test("il capitolo ha un link diretto e resta nell'URL", async ({ page }) => {
+    await page.goto("/#/documenti/2/2");
+    await expect(page.locator(".reader-sidebar button.selected")).toContainText(
+      "La Mutazione Cognitiva",
+    );
+    await expect(page.locator(".reading-paper h2")).toContainText("La Mutazione Cognitiva");
+    await expect(page).toHaveURL(/#\/documenti\/2\/2$/);
+  });
+
+  test("tornando su Documenti la ricerca non riapre il paragrafo", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Cerca nei documenti" }).click();
+    const input = page.getByRole("combobox", { name: "Cerca nei documenti" });
+    await input.fill("pensiero");
+    await expect(page.getByRole("option").first()).toBeVisible();
+    await input.press("Enter");
+    await expect(page.locator(".search-hit")).toHaveCount(1);
+
+    await page.getByRole("button", { name: "Percorso", exact: true }).click();
+    await page.getByRole("button", { name: "Documenti", exact: true }).click();
+    await expect(page.locator(".search-hit")).toHaveCount(0);
+    await expect(page.locator("mark.search-term")).toHaveCount(0);
+  });
+
+  test("un percorso sconosciuto mostra la pagina di fallback", async ({ page }) => {
+    await page.goto("/pagina-inesistente");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Qui non c’è un capitolo.");
+    await expect(page.getByRole("link", { name: "Torna al percorso" })).toBeVisible();
+  });
+
+  test("il menu mobile si chiude con Esc e restituisce il focus", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const menu = page.getByRole("button", { name: "Apri menu" });
+    await menu.click();
+    await expect(page.locator(".nav.open")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".nav.open")).toHaveCount(0);
+    await expect(menu).toBeFocused();
+  });
+
+  test("la ricerca si naviga da tastiera e apre il paragrafo trovato", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Cerca nei documenti" }).click();
+    const dialog = page.getByRole("dialog", { name: "Ricerca nei documenti" });
+    const input = dialog.getByRole("combobox", { name: "Cerca nei documenti" });
+    await input.fill("pensiero");
+    await expect(dialog.getByRole("option").first()).toBeVisible();
+
+    await input.press("ArrowDown");
+    const first = dialog.getByRole("option").first();
+    await expect(first).toHaveAttribute("aria-selected", "true");
+    await expect(input).toHaveAttribute("aria-activedescendant", "search-result-0");
+
+    await input.press("Enter");
+    await expect(page).toHaveURL(/#\/documenti\/\d+\/\d+$/);
+    await expect(page.locator(".paragraph-block.search-hit")).toHaveCount(1);
+    await expect(page.locator("mark.search-term").first()).toBeVisible();
+  });
+
+  test("con movimento ridotto il risultato apre il capitolo e le occorrenze sono marcate", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Cerca nei documenti" }).click();
+    const input = page.getByRole("combobox", { name: "Cerca nei documenti" });
+    await input.fill("pensiero");
+    await expect(page.getByRole("option").first()).toBeVisible();
+    await input.press("Enter");
+    await expect(page).toHaveURL(/#\/documenti\/\d+\/\d+$/);
+    await expect(page.locator("mark.search-term").first()).toBeVisible();
   });
 
   test("il tema chiaro si attiva e resta dopo il ricaricamento", async ({ page }) => {

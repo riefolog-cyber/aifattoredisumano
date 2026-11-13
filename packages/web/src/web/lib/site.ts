@@ -31,7 +31,8 @@ export const PAGE_TITLES: Record<Tab, string> = {
 /**
  * Sezioni estratte dai DOCX ma nascoste alla lettura: il glossario in coda
  * alla Guida didattica duplica la sezione Glossario dedicata, che resta
- * l'unico punto di accesso ai termini. documents.json resta intatto.
+ * l'unico punto di accesso ai termini. Scelta mantenuta: i testi originali
+ * restano intatti in documents.json, le sezioni duplicate non vengono mostrate.
  */
 export const HIDDEN_SECTIONS: ReadonlySet<string> = new Set(["0:5", "1:4"]);
 
@@ -77,7 +78,22 @@ export function normalizeCompleted(value: readonly (number | string)[]): string[
 
 export function tabFromHash(): Tab | null {
   if (typeof window === "undefined") return null;
-  const slug = window.location.hash.replace(/^#\/?/, "").toLowerCase();
+  const slug = window.location.hash.replace(/^#\/?/, "").split("/")[0].toLowerCase();
   const match = Object.entries(TAB_SLUGS).find(([, value]) => value === slug);
   return match ? (match[0] as Tab) : null;
+}
+
+/**
+ * I capitoli hanno un link diretto: #/documenti/<documento>/<capitolo>, con
+ * indici a base 1 per essere leggibili e condivisibili.
+ */
+export function chapterFromHash(): ChapterRef | null {
+  if (typeof window === "undefined") return null;
+  const match = window.location.hash.match(/^#\/documenti\/(\d+)\/(\d+)\/?$/);
+  if (!match) return null;
+  return { doc: Number(match[1]) - 1, section: Number(match[2]) - 1 };
+}
+
+export function chapterHash(doc: number, section: number) {
+  return `#/documenti/${doc + 1}/${section + 1}`;
 }

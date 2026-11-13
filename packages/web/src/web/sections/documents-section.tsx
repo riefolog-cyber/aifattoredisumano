@@ -8,6 +8,8 @@ import { FIGURE_FOR_SECTION, ReadingFigure } from "../components/reading-figures
 type DocumentsSectionProps = {
   docIndex: number;
   section: number;
+  focus: { di: number; si: number; pi: number; query: string; shown: boolean } | null;
+  onFocusShown: () => void;
   completed: string[];
   onSelectDoc: (index: number) => void;
   onSelectSection: (index: number) => void;
@@ -18,6 +20,8 @@ type DocumentsSectionProps = {
 export function DocumentsSection({
   docIndex,
   section,
+  focus,
+  onFocusShown,
   completed,
   onSelectDoc,
   onSelectSection,
@@ -34,6 +38,9 @@ export function DocumentsSection({
     : (visibleIndices[0] ?? 0);
   const currentSection = currentDoc.sections[safeSection];
   const position = visibleIndices.indexOf(safeSection);
+  const activeFocus =
+    focus && focus.di === safeDocIndex && focus.si === safeSection ? focus : null;
+  const searchTerm = activeFocus ? activeFocus.query.trim() : "";
   const figureAfter =
     currentSection.paragraphs.length > 3
       ? 2
@@ -46,6 +53,31 @@ export function DocumentsSection({
   };
   const paperRef = useRef<HTMLElement>(null);
   const [progress, setProgress] = useState(0);
+  const [hitParagraph, setHitParagraph] = useState<number | null>(null);
+
+  // Apre il capitolo di un risultato di ricerca sul paragrafo trovato:
+  // scroll e alone valgono una sola volta, anche se si torna sulla sezione.
+  useEffect(() => {
+    if (!activeFocus) {
+      setHitParagraph(null);
+      return;
+    }
+    if (activeFocus.shown) return;
+    const target = paperRef.current?.querySelector<HTMLElement>(
+      `.paragraph-block[data-paragraph="${activeFocus.pi}"]`,
+    );
+    if (!target) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+    setHitParagraph(activeFocus.pi);
+    onFocusShown();
+  }, [activeFocus, onFocusShown]);
+
+  useEffect(() => {
+    if (hitParagraph === null) return;
+    const timer = window.setTimeout(() => setHitParagraph(null), 2400);
+    return () => window.clearTimeout(timer);
+  }, [hitParagraph]);
 
   const words = currentSection.paragraphs.reduce(
     (total, paragraph) => total + paragraph.text.split(/\s+/).filter(Boolean).length,
@@ -177,7 +209,11 @@ export function DocumentsSection({
                 paragraph.text,
               );
             return (
-              <div className="paragraph-block" key={index}>
+              <div
+                className={`paragraph-block${hitParagraph === index ? " search-hit" : ""}`}
+                data-paragraph={index}
+                key={index}
+              >
                 {figure && (
                   <figure className="reading-figure">
                     <ReadingFigure kind={figure.kind} />
@@ -185,12 +221,16 @@ export function DocumentsSection({
                   </figure>
                 )}
                 {heading ? (
-                  <h3>{paragraph.text}</h3>
+                  <h3>
+                    <HighlightText text={paragraph.text} term={searchTerm} />
+                  </h3>
                 ) : table ? (
-                  <div className="original-table-row">{paragraph.text}</div>
+                  <div className="original-table-row">
+                    <HighlightText text={paragraph.text} term={searchTerm} />
+                  </div>
                 ) : (
                   <p className={paragraph.text.startsWith("Risposta") ? "original-answer" : ""}>
-                    {paragraph.text}
+                    <HighlightText text={paragraph.text} term={searchTerm} />
                   </p>
                 )}
               </div>
@@ -223,5 +263,26 @@ export function DocumentsSection({
         </article>
       </div>
     </main>
+  );
+}
+
+/** Evidenzia le occorrenze esatte del termine cercato nel testo del capitolo. */
+function HighlightText({ text, term }: { text: string; term: string }) {
+  const needle = term.trim();
+  if (needle.length < 2) return <>{text}</>;
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const lower = needle.toLowerCase();
+  return (
+    <>
+      {text.split(new RegExp(`(${escaped})`, "gi")).map((part, index) =>
+        part.toLowerCase() === lower ? (
+          <mark className="search-term" key={index}>
+            {part}
+          </mark>
+        ) : (
+          part
+        ),
+      )}
+    </>
   );
 }

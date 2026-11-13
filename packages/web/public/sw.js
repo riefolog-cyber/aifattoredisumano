@@ -1,4 +1,6 @@
-const CACHE_NAME = "fd-cache-v2";
+// Incrementare la versione quando cambiano asset non hashed (icone, og-image),
+// così l'installazione riparte e la cache vecchia viene eliminata.
+const CACHE_NAME = "fd-cache-v3";
 const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, "");
 const withBase = (path) => `${BASE}${path}`;
 const CORE_ASSETS = [

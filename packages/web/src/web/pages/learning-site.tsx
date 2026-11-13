@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import content from "../data/documents.json";
 import { SearchDialog } from "../components/search-dialog";
 import { SiteFooter } from "../components/site-footer";
@@ -13,9 +13,12 @@ import { searchDocuments, type SearchResult } from "../lib/search";
 import {
   CHAPTERS,
   STORAGE_KEYS,
+  chapterFromHash,
+  chapterHash,
   chapterKey,
   isSectionVisible,
   normalizeCompleted,
+  type ChapterRef,
   type Tab,
 } from "../lib/site";
 import { applyTheme, initialTheme, type Theme } from "../lib/theme";
@@ -25,6 +28,14 @@ import { usePageMeta } from "../lib/use-page-meta";
 import { useStored } from "../lib/use-stored";
 
 const prefetchLaboratory = () => import("../components/model-comparison");
+
+type SearchFocus = {
+  di: number;
+  si: number;
+  pi: number;
+  query: string;
+  shown: boolean;
+};
 
 /**
  * La sezione glossario in coda alla Guida didattica è coperta dal tab
@@ -37,13 +48,25 @@ const searchableDocuments = content.documents.map((document, di) => ({
   ),
 }));
 
+function resolveChapter(ref: ChapterRef | null): ChapterRef {
+  if (!ref) return { doc: 0, section: 0 };
+  const doc = Math.min(Math.max(ref.doc, 0), content.documents.length - 1);
+  const sections = content.documents[doc].sections;
+  let section = Math.min(Math.max(ref.section, 0), sections.length - 1);
+  if (!isSectionVisible(doc, section)) {
+    section = sections.findIndex((_, index) => isSectionVisible(doc, index));
+  }
+  return { doc, section: Math.max(section, 0) };
+}
+
 export default function LearningSite() {
   const [tab, navigate] = useHashTab("Percorso");
   usePageMeta(tab);
 
-  const [docIndex, setDocIndex] = useState(0);
-  const [section, setSection] = useState(0);
+  const [docIndex, setDocIndex] = useState(() => resolveChapter(chapterFromHash()).doc);
+  const [section, setSection] = useState(() => resolveChapter(chapterFromHash()).section);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchFocus, setSearchFocus] = useState<SearchFocus | null>(null);
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [labView, setLabView] = useState<LabView>("confronto");
@@ -64,24 +87,65 @@ export default function LearningSite() {
     applyTheme(theme);
   }, [theme]);
 
+  // Il riferimento alla ricerca vale solo mentre si legge quel capitolo.
+  useEffect(() => {
+    if (tab !== "Documenti") setSearchFocus(null);
+  }, [tab]);
+
+  // Il capitolo aperto resta nell'URL, così è condivisibile e ricaricabile.
+  useEffect(() => {
+    if (tab !== "Documenti") return;
+    const next = chapterHash(docIndex, section);
+    if (window.location.hash !== next) window.history.replaceState(null, "", next);
+  }, [tab, docIndex, section]);
+
+  useEffect(() => {
+    const syncChapter = () => {
+      const ref = chapterFromHash();
+      if (!ref) return;
+      const next = resolveChapter(ref);
+      setDocIndex(next.doc);
+      setSection(next.section);
+    };
+    window.addEventListener("hashchange", syncChapter);
+    return () => window.removeEventListener("hashchange", syncChapter);
+  }, []);
+
   const results = useMemo(
     () => searchDocuments(searchableDocuments, deferredQuery),
     [deferredQuery],
   );
 
   const go = (next: Tab) => {
+    setSearchFocus(null);
     navigate(next);
+    if (next === "Documenti") {
+      window.history.replaceState(null, "", chapterHash(docIndex, section));
+    }
     window.scrollTo({ top: 0, behavior: "auto" });
   };
 
-  const read = (documentIndex: number, sectionIndex: number) => {
+  const read = (
+    documentIndex: number,
+    sectionIndex: number,
+    match?: { pi: number; query: string },
+  ) => {
     setDocIndex(documentIndex);
     setSection(sectionIndex);
     setSearchOpen(false);
-    go("Documenti");
+    setSearchFocus(
+      match ? { di: documentIndex, si: sectionIndex, ...match, shown: false } : null,
+    );
+    navigate("Documenti");
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
-  const selectResult = (result: SearchResult) => read(result.di, result.si);
+  const selectResult = (result: SearchResult) =>
+    read(result.di, result.si, { pi: result.pi, query: deferredQuery });
+
+  const markSearchFocusShown = useCallback(() => {
+    setSearchFocus((current) => (current && !current.shown ? { ...current, shown: true } : current));
+  }, []);
 
   const toggleComplete = (key: string) => {
     const next = normalizeCompleted(completedStored);
@@ -135,12 +199,18 @@ export default function LearningSite() {
         <DocumentsSection
           docIndex={docIndex}
           section={section}
+          focus={searchFocus}
+          onFocusShown={markSearchFocusShown}
           completed={completed}
           onSelectDoc={(index) => {
             setDocIndex(index);
             setSection(0);
+            setSearchFocus(null);
           }}
-          onSelectSection={setSection}
+          onSelectSection={(index) => {
+            setSection(index);
+            setSearchFocus(null);
+          }}
           onToggleComplete={toggleComplete}
           onOpenSearch={() => setSearchOpen(true)}
         />

@@ -5,6 +5,7 @@ export type SearchDocument = { name: string; sections: readonly SearchSection[] 
 export type SearchResult = {
   di: number;
   si: number;
+  pi: number;
   title: string;
   doc: string;
   text: string;
@@ -31,9 +32,10 @@ export function searchDocuments(
     const document = documents[di];
     for (let si = 0; si < document.sections.length; si++) {
       const section = document.sections[si];
-      for (const paragraph of section.paragraphs) {
+      for (let pi = 0; pi < section.paragraphs.length; pi++) {
+        const paragraph = section.paragraphs[pi];
         if (paragraph.text.toLowerCase().includes(term)) {
-          results.push({ di, si, title: section.title, doc: document.name, text: paragraph.text });
+          results.push({ di, si, pi, title: section.title, doc: document.name, text: paragraph.text });
           if (results.length >= limit) return results;
         }
       }

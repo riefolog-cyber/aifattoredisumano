@@ -72,3 +72,7 @@ scripts/
 !packages/mobile/scripts/
 packages/mobile/scripts/*
 !packages/mobile/scripts/generate-ios-certs.py
+
+# Playwright
+packages/web/test-results/
+packages/web/playwright-report/

@@ -754,7 +754,7 @@ a svg {
     9px "Poppins",
     sans-serif;
   letter-spacing: 1px;
-  color: #6c7771;
+  color: #5a655f;
   text-transform: uppercase;
   margin-bottom: 27px;
 }
@@ -1156,18 +1156,25 @@ a svg {
   color: var(--muted);
   padding: 20px 0;
 }
-.search-results > button {
+.search-result-list > button {
   width: 100%;
   text-align: left;
   padding: 20px 0;
   border-bottom: 1px solid var(--line);
 }
-.search-results > button h3 {
+.search-result-list > button.active {
+  background: rgba(213, 248, 111, 0.07);
+}
+.search-result-list > button.active h3,
+.search-result-list > button.active .result-link {
+  color: var(--acid);
+}
+.search-result-list > button h3 {
   font-size: 16px;
   font-weight: 500;
   margin: 9px 0;
 }
-.search-results > button p {
+.search-result-list > button p {
   font:
     13px/1.8 Georgia,
     serif;
@@ -2690,8 +2697,20 @@ body {
   background: rgba(95, 134, 7, 0.07);
 }
 [data-theme="light"] .chapter-number,
-[data-theme="light"] .chapter-row > svg {
-  color: #77847f;
+[data-theme="light"] .chapter-row > svg,
+[data-theme="light"] .reader-sidebar > button > span,
+[data-theme="light"] .debate-sidebar > button > span:first-child {
+  color: #5e6c69;
+}
+[data-theme="light"] .chapter-number.done {
+  color: var(--acid);
+}
+[data-theme="light"] .chapter-row:hover > svg {
+  color: var(--acid);
+}
+[data-theme="light"] .concept-map-badge {
+  background: #d5f86f;
+  color: #0e1417;
 }
 [data-theme="light"] .lab-teaser {
   color: #1e2a12;
@@ -2862,6 +2881,9 @@ body {
 }
 [data-theme="light"] .search-modal-top input {
   color: var(--ink);
+}
+[data-theme="light"] .search-result-list > button.active {
+  background: rgba(95, 134, 7, 0.08);
 }
 [data-theme="light"] .footer {
   color: var(--muted);
@@ -3263,7 +3285,7 @@ body {
     sans-serif;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: #6c7771;
+  color: #5a655f;
   border: 1px solid #d6d8cf;
   border-radius: 20px;
   padding: 4px 12px;
@@ -3319,6 +3341,36 @@ body {
   padding-top: 10px;
 }
 
+/* ============ Evidenziazione del passaggio trovato nella ricerca ============ */
+.paragraph-block {
+  position: relative;
+}
+.paragraph-block::before {
+  content: "";
+  position: absolute;
+  inset: -10px -14px;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1.5px rgba(139, 166, 42, 0.5),
+    0 0 26px 6px rgba(139, 166, 42, 0.22);
+  opacity: 0;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+.paragraph-block.search-hit::before {
+  opacity: 1;
+  transition-duration: 0.1s;
+}
+/* Occorrenze del termine cercato nel capitolo aperto */
+mark.search-term {
+  background: rgba(213, 248, 111, 0.75);
+  color: #1d2622;
+  border-radius: 2px;
+  padding: 0 1px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *:before,
@@ -3326,5 +3378,91 @@ body {
     animation: none !important;
     scroll-behavior: auto !important;
     transition: none !important;
+  }
+}
+
+/* ============ Errori e pagina non trovata ============ */
+.error-fallback {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 120px 42px;
+  min-height: 70vh;
+}
+.error-fallback h1 {
+  font-family: "Instrument Serif", "Poppins", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 56px);
+  letter-spacing: -0.6px;
+  line-height: 1.1;
+  margin: 18px 0;
+}
+.error-fallback p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.9;
+}
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+/* ============ Stampa di capitoli e guide ============ */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000;
+  }
+  .header,
+  .footer,
+  .skip-link,
+  .search-overlay,
+  .reader-sidebar,
+  .doc-toolbar,
+  .reading-footer,
+  .reading-progress,
+  .debate-sidebar,
+  .notes-actions,
+  .quiz-actions,
+  .lab-tabs,
+  .home-aside,
+  .video-feature,
+  .concept-map-card {
+    display: none !important;
+  }
+  .home-main,
+  .inner-main {
+    max-width: none;
+    padding: 0;
+  }
+  .reader-layout,
+  .debate-layout {
+    display: block;
+  }
+  .reading-paper,
+  .debate-panel,
+  .quiz-panel,
+  .teachers-card {
+    background: #fff;
+    color: #000;
+    box-shadow: none;
+    border: 0;
+    padding: 0;
+  }
+  .paragraph-block {
+    break-inside: avoid;
+  }
+  .reading-paper h2,
+  .reading-paper h3 {
+    break-after: avoid;
+  }
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+  @page {
+    margin: 18mm;
   }
 }

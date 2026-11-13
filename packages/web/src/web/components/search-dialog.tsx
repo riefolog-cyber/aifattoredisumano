@@ -1,4 +1,4 @@
-import { useEffect, useRef, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowUpRight, Search, X } from "lucide-react";
 import { MAX_SEARCH_RESULTS, makeSnippet, type SearchResult } from "../lib/search";
 
@@ -25,13 +25,28 @@ export function SearchDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const modalRef = useRef<HTMLElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [results]);
+
+  useEffect(() => {
+    if (activeIndex < 0) return;
+    listRef.current
+      ?.querySelector<HTMLElement>(`[data-result-index="${activeIndex}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     if (dialog && !dialog.open) dialog.showModal();
     inputRef.current?.focus();
     return () => {
       if (dialog?.open) dialog.close();
+      opener?.focus();
     };
   }, []);
 
@@ -39,6 +54,24 @@ export function SearchDialog({
     if (event.key === "Escape") {
       event.preventDefault();
       onClose();
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      if (results.length === 0) return;
+      event.preventDefault();
+      setActiveIndex((index) => {
+        if (event.key === "ArrowDown") return index >= results.length - 1 ? 0 : index + 1;
+        return index <= 0 ? results.length - 1 : index - 1;
+      });
+      return;
+    }
+    if (
+      event.key === "Enter" &&
+      results.length > 0 &&
+      document.activeElement === inputRef.current
+    ) {
+      event.preventDefault();
+      onSelect(results[activeIndex >= 0 ? activeIndex : 0]);
       return;
     }
     if (event.key !== "Tab" || !modalRef.current) return;
@@ -73,7 +106,13 @@ export function SearchDialog({
           <Search size={22} />
           <input
             ref={inputRef}
+            type="text"
+            role="combobox"
             aria-label="Cerca nei documenti"
+            aria-expanded={results.length > 0}
+            aria-controls="search-result-list"
+            aria-autocomplete="list"
+            aria-activedescendant={activeIndex >= 0 ? `search-result-${activeIndex}` : undefined}
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Cerca nei due documenti…"
@@ -92,22 +131,39 @@ export function SearchDialog({
               <div className="search-count" role="status" aria-live="polite">
                 {results.length >= MAX_SEARCH_RESULTS ? `Primi ${results.length} passaggi — affina la ricerca` : `${results.length} passaggi trovati`}
               </div>
-              {results.map((result, index) => (
-                <button key={`${result.di}-${result.si}-${index}`} onClick={() => onSelect(result)}>
-                  <span className="label">
-                    {result.doc} · CAPITOLO {result.si + 1}
-                  </span>
-                  <h3>{result.title.replace(/^\d+\. /, "")}</h3>
-                  <p>
-                    {result.text.length > 300 ? makeSnippet(result.text, highlightQuery) : result.text}
-                  </p>
-                  <span className="result-link">
-                    Apri il capitolo <ArrowUpRight size={14} />
-                  </span>
-                </button>
-              ))}
-              {results.length === 0 && (
+              {results.length === 0 ? (
                 <p className="empty-state">Nessun passaggio trovato. Prova una parola diversa.</p>
+              ) : (
+                <div
+                  className="search-result-list"
+                  id="search-result-list"
+                  ref={listRef}
+                  role="listbox"
+                  aria-label="Passaggi trovati"
+                >
+                  {results.map((result, index) => (
+                    <button
+                      key={`${result.di}-${result.si}-${index}`}
+                      id={`search-result-${index}`}
+                      data-result-index={index}
+                      role="option"
+                      aria-selected={index === activeIndex}
+                      className={index === activeIndex ? "active" : ""}
+                      onClick={() => onSelect(result)}
+                    >
+                      <span className="label">
+                        {result.doc} · CAPITOLO {result.si + 1}
+                      </span>
+                      <h3>{result.title.replace(/^\d+\. /, "")}</h3>
+                      <p>
+                        {result.text.length > 300 ? makeSnippet(result.text, highlightQuery) : result.text}
+                      </p>
+                      <span className="result-link">
+                        Apri il capitolo <ArrowUpRight size={14} />
+                      </span>
+                    </button>
+                  ))}
+                </div>
               )}
             </>
           )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Brain, Menu, Moon, Search, Sun } from "lucide-react";
 import { TABS, type Tab } from "../lib/site";
 import type { Theme } from "../lib/theme";
@@ -21,6 +21,29 @@ export function SiteHeader({
   onOpenSearch,
 }: SiteHeaderProps) {
   const [mobileMenu, setMobileMenu] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!mobileMenu) return;
+    const close = () => setMobileMenu(false);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      close();
+      menuButtonRef.current?.focus();
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (navRef.current?.contains(target) || menuButtonRef.current?.contains(target)) return;
+      close();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [mobileMenu]);
 
   const go = (next: Tab) => {
     setMobileMenu(false);
@@ -39,7 +62,12 @@ export function SiteHeader({
           <b>UMANO</b>
         </span>
       </button>
-      <nav className={mobileMenu ? "nav open" : "nav"} aria-label="Navigazione principale">
+      <nav
+        className={mobileMenu ? "nav open" : "nav"}
+        id="main-nav"
+        ref={navRef}
+        aria-label="Navigazione principale"
+      >
         {TABS.map((item) => (
           <button
             key={item}
@@ -80,8 +108,10 @@ export function SiteHeader({
         </button>
         <button
           className="menu-button"
+          ref={menuButtonRef}
           aria-label={mobileMenu ? "Chiudi menu" : "Apri menu"}
           aria-expanded={mobileMenu}
+          aria-controls="main-nav"
           onClick={() => setMobileMenu((open) => !open)}
         >
           <Menu />

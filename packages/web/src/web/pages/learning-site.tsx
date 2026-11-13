@@ -1,14 +1,17 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import content from "../data/documents.json";
 import { SearchDialog } from "../components/search-dialog";
 import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
+import { UpdatePrompt } from "../components/update-prompt";
 import { DebateSection } from "../sections/debate-section";
 import { DocumentsSection } from "../sections/documents-section";
 import { GlossarySection } from "../sections/glossary-section";
 import { HomeSection } from "../sections/home-section";
 import { TeachersSection } from "../sections/teachers-section";
 import { LabSection, type LabView } from "../sections/lab-section";
+import { downloadJson } from "../lib/download";
+import { buildProgressSnapshot, parseProgressSnapshot } from "../lib/progress";
 import { searchDocuments, type SearchResult } from "../lib/search";
 import {
   CHAPTERS,
@@ -80,8 +83,41 @@ export default function LearningSite() {
   ).length;
   const [bestScore, setBestScore] = useStored<number | null>(STORAGE_KEYS.bestScore, null);
   const [theme, setTheme] = useStored<Theme>(STORAGE_KEYS.theme, initialTheme);
+  const [announcement, setAnnouncement] = useState("");
+  const previousTab = useRef(tab);
 
   useIdlePrefetch(prefetchLaboratory);
+
+  // Le schede sono route interne: sposta il focus e annuncia il cambio.
+  useEffect(() => {
+    if (previousTab.current === tab) return;
+    previousTab.current = tab;
+    const main = document.getElementById("contenuto");
+    main?.focus({ preventScroll: true });
+    setAnnouncement(`Sezione ${tab} aperta.`);
+  }, [tab]);
+
+  // "/" e Ctrl/Cmd+K aprono la ricerca; "/" resta affidabile anche dove
+  // il browser riserva Ctrl+K alla barra degli indirizzi.
+  useEffect(() => {
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        setSearchOpen(true);
+        return;
+      }
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      const typing =
+        target?.isContentEditable ||
+        (target ? ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) : false);
+      if (event.key === "/" && !typing && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   useEffect(() => {
     applyTheme(theme);
@@ -154,8 +190,36 @@ export default function LearningSite() {
     );
   };
 
+  const exportProgress = () => {
+    downloadJson("il-fattore-umano-progressi.json", buildProgressSnapshot(completed, bestScore));
+    return `Backup creato: ${completed.length} capitoli completati${
+      bestScore !== null ? `, record ${bestScore}/10` : ""
+    }.`;
+  };
+
+  const importProgress = async (file: File) => {
+    try {
+      const parsed = parseProgressSnapshot(await file.text());
+      if (
+        (completed.length > 0 || bestScore !== null) &&
+        !window.confirm("Sostituire i progressi presenti con quelli del file?")
+      ) {
+        return "Importazione annullata.";
+      }
+      setCompletedStored(parsed.completed);
+      setBestScore(parsed.bestScore);
+      return `Importati ${parsed.completed.length} capitoli completati.`;
+    } catch (error) {
+      return error instanceof Error ? error.message : "File non valido.";
+    }
+  };
+
   return (
     <div className="site-shell">
+      <div className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </div>
+
       <a
         className="skip-link"
         href="#contenuto"
@@ -213,6 +277,8 @@ export default function LearningSite() {
           }}
           onToggleComplete={toggleComplete}
           onOpenSearch={() => setSearchOpen(true)}
+          onExportProgress={exportProgress}
+          onImportProgress={importProgress}
         />
       )}
 
@@ -251,6 +317,8 @@ export default function LearningSite() {
           go("Documenti");
         }}
       />
+
+      <UpdatePrompt />
 
       {searchOpen && (
         <SearchDialog

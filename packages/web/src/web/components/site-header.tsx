@@ -80,7 +80,13 @@ export function SiteHeader({
         ))}
       </nav>
       <div className="header-tools">
-        <button className="search-button" onClick={onOpenSearch} aria-label="Cerca nei documenti">
+        <button
+          className="search-button"
+          onClick={onOpenSearch}
+          aria-label="Cerca nei documenti"
+          aria-keyshortcuts="/ Control+K Meta+K"
+          title="Cerca nei documenti ( / )"
+        >
           <Search size={19} />
           <span>Cerca</span>
         </button>

@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clock, ClipboardCheck, Users, BookOpen } from "lucide-react";
+import { ArrowUpRight, Clock, ClipboardCheck, Users, BookOpen, Printer } from "lucide-react";
 import { PageHeading } from "../components/page-heading";
 import { CHAPTERS, type Tab } from "../lib/site";
 
@@ -35,6 +35,11 @@ export function TeachersSection({ onNavigate, onRead, onOpenLab, onStartQuiz }: 
         title="Porta il percorso in classe."
         text="Obiettivi, tempi e strumenti: tutto ciò che serve per usare questo sito in un percorso di 6 ore, senza account e senza costi."
       />
+      <div className="doc-toolbar teachers-toolbar">
+        <button className="text-button" onClick={() => window.print()}>
+          <Printer size={16} /> Stampa / PDF della guida
+        </button>
+      </div>
       <div className="teachers-grid">
         <section className="teachers-card">
           <span className="label">

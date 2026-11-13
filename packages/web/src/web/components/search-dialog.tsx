@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowUpRight, Search, X } from "lucide-react";
 import { MAX_SEARCH_RESULTS, makeSnippet, type SearchResult } from "../lib/search";
+import { HighlightText } from "./highlight-text";
 
 type SearchDialogProps = {
   highlightQuery: string;
@@ -156,7 +157,14 @@ export function SearchDialog({
                       </span>
                       <h3>{result.title.replace(/^\d+\. /, "")}</h3>
                       <p>
-                        {result.text.length > 300 ? makeSnippet(result.text, highlightQuery) : result.text}
+                        <HighlightText
+                          text={
+                            result.text.length > 300
+                              ? makeSnippet(result.text, highlightQuery)
+                              : result.text
+                          }
+                          term={highlightQuery}
+                        />
                       </p>
                       <span className="result-link">
                         Apri il capitolo <ArrowUpRight size={14} />

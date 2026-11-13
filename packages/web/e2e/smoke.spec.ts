@@ -187,6 +187,63 @@ test.describe("Il Fattore Umano", () => {
     );
   });
 
+  test("i progressi si esportano e si importano", async ({ page }) => {
+    await page.goto("/#/documenti/1/1");
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Esporta progressi" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("il-fattore-umano-progressi.json");
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "progressi.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(
+        JSON.stringify({
+          app: "il-fattore-umano",
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          completed: ["0:0"],
+          bestScore: 6,
+        }),
+      ),
+    });
+    await expect(page.getByText("Importati 1 capitoli completati.")).toBeVisible();
+    await expect(page.locator(".mark-complete")).toContainText("Capitolo completato");
+
+    await page.reload();
+    await expect(page.locator(".mark-complete")).toContainText("Capitolo completato");
+  });
+
+  test("in stampa restano solo i contenuti del capitolo", async ({ page }) => {
+    await page.goto("/#/documenti/1/1");
+    await expect(page.getByRole("button", { name: "Stampa / PDF" })).toBeVisible();
+    await page.emulateMedia({ media: "print" });
+    await expect(page.locator(".header")).toBeHidden();
+    await expect(page.locator(".reading-footer")).toBeHidden();
+    await expect(page.locator(".doc-toolbar")).toBeHidden();
+    await expect(page.locator(".reading-paper h2")).toBeVisible();
+  });
+
+  test("la scorciatoia apre la ricerca e gli snippet evidenziano il termine", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await page.keyboard.press("/");
+    const dialog = page.getByRole("dialog", { name: "Ricerca nei documenti" });
+    await expect(dialog).toBeVisible();
+    const input = dialog.getByRole("combobox", { name: "Cerca nei documenti" });
+    await input.fill("pensiero");
+    await expect(dialog.locator("mark.search-term").first()).toBeVisible();
+  });
+
+  test("cambiando sezione il focus va al contenuto e viene annunciato", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Glossario", exact: true }).click();
+    await expect(page.locator("#contenuto")).toBeFocused();
+    await expect(page.locator(".sr-only[role=\"status\"]")).toContainText(
+      "Sezione Glossario aperta.",
+    );
+  });
+
   test("gli appunti del dibattito si salvano ed esportano in Markdown", async ({ page }) => {
     await page.goto("/#/dibattito");
     const notes = page.getByRole("textbox", { name: "Il tuo spazio di riflessione" });

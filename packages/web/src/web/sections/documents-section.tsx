@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { Check, ChevronLeft, ChevronRight, Download, Printer, Search, Upload } from "lucide-react";
 import content from "../data/documents.json";
 import { chapterKey, isSectionVisible } from "../lib/site";
+import { HighlightText } from "../components/highlight-text";
 import { PageHeading } from "../components/page-heading";
 import { FIGURE_FOR_SECTION, ReadingFigure } from "../components/reading-figures";
 
@@ -15,6 +16,8 @@ type DocumentsSectionProps = {
   onSelectSection: (index: number) => void;
   onToggleComplete: (key: string) => void;
   onOpenSearch: () => void;
+  onExportProgress: () => string;
+  onImportProgress: (file: File) => Promise<string>;
 };
 
 export function DocumentsSection({
@@ -27,6 +30,8 @@ export function DocumentsSection({
   onSelectSection,
   onToggleComplete,
   onOpenSearch,
+  onExportProgress,
+  onImportProgress,
 }: DocumentsSectionProps) {
   const safeDocIndex = Math.min(Math.max(docIndex, 0), content.documents.length - 1);
   const currentDoc = content.documents[safeDocIndex];
@@ -52,8 +57,17 @@ export function DocumentsSection({
     window.scrollTo({ top: 200, behavior: "smooth" });
   };
   const paperRef = useRef<HTMLElement>(null);
+  const importRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
   const [hitParagraph, setHitParagraph] = useState<number | null>(null);
+  const [progressStatus, setProgressStatus] = useState("");
+
+  const importProgress = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setProgressStatus(await onImportProgress(file));
+  };
 
   // Apre il capitolo di un risultato di ricerca sul paragrafo trovato:
   // scroll e alone valgono una sola volta, anche se si torna sulla sezione.
@@ -157,10 +171,38 @@ export function DocumentsSection({
             </button>
           ))}
         </div>
-        <button className="text-button" onClick={onOpenSearch}>
-          <Search size={17} /> Cerca nei testi
-        </button>
+        <div className="doc-tools">
+          <button className="text-button" onClick={onOpenSearch}>
+            <Search size={17} /> Cerca nei testi
+          </button>
+          <button
+            className="text-button"
+            title="Capitoli letti e record del quiz"
+            onClick={() => setProgressStatus(onExportProgress())}
+          >
+            <Download size={16} /> Esporta progressi
+          </button>
+          <button
+            className="text-button"
+            title="Ripristina capitoli letti e record del quiz"
+            onClick={() => importRef.current?.click()}
+          >
+            <Upload size={16} /> Importa
+          </button>
+          <input
+            ref={importRef}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={importProgress}
+          />
+        </div>
       </div>
+      {progressStatus && (
+        <p className="progress-status" role="status">
+          {progressStatus}
+        </p>
+      )}
       <div className="reader-layout">
         <aside className="reader-sidebar">
           <div className="label">INDICE DEL DOCUMENTO</div>
@@ -259,30 +301,12 @@ export function DocumentsSection({
             >
               Successivo <ChevronRight size={17} />
             </button>
+            <button onClick={() => window.print()}>
+              <Printer size={16} /> Stampa / PDF
+            </button>
           </div>
         </article>
       </div>
     </main>
-  );
-}
-
-/** Evidenzia le occorrenze esatte del termine cercato nel testo del capitolo. */
-function HighlightText({ text, term }: { text: string; term: string }) {
-  const needle = term.trim();
-  if (needle.length < 2) return <>{text}</>;
-  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const lower = needle.toLowerCase();
-  return (
-    <>
-      {text.split(new RegExp(`(${escaped})`, "gi")).map((part, index) =>
-        part.toLowerCase() === lower ? (
-          <mark className="search-term" key={index}>
-            {part}
-          </mark>
-        ) : (
-          part
-        ),
-      )}
-    </>
   );
 }

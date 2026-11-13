@@ -3381,6 +3381,73 @@ mark.search-term {
   }
 }
 
+/* ============ Utility ============ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============ Progressi esportabili e aggiornamenti ============ */
+.doc-tools {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.progress-status {
+  margin: -16px 0 26px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.update-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: calc(100% - 32px);
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+}
+.update-prompt button {
+  padding: 6px 12px;
+  border: 1px solid var(--acid);
+  border-radius: 6px;
+  color: var(--acid);
+  font-size: 11px;
+}
+.update-prompt button:hover {
+  background: var(--acid);
+  color: var(--night);
+}
+[data-theme="light"] .update-prompt {
+  background: #fff;
+  border-color: #d8d5c7;
+  box-shadow: 0 16px 40px rgba(32, 42, 38, 0.18);
+}
+[data-theme="light"] .update-prompt button {
+  border-color: #4c6b2f;
+  color: #3f5c26;
+}
+[data-theme="light"] .update-prompt button:hover {
+  background: #43632c;
+  color: #fff;
+}
+
 /* ============ Errori e pagina non trovata ============ */
 .error-fallback {
   max-width: 680px;
@@ -3422,6 +3489,7 @@ mark.search-term {
   .reader-sidebar,
   .doc-toolbar,
   .reading-footer,
+  .update-prompt,
   .reading-progress,
   .debate-sidebar,
   .notes-actions,

@@ -1,10 +1,31 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Check, ChevronLeft, ChevronRight, Download, Printer, Search, Upload } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+} from "react";
+import {
+  ArrowUpRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Printer,
+  Search,
+  Upload,
+} from "lucide-react";
 import content from "../data/documents.json";
-import { chapterKey, isSectionVisible } from "../lib/site";
+import { CHAPTER_SUMMARIES } from "../data/chapter-summaries";
+import { CHAPTERS, STORAGE_KEYS, chapterKey, isSectionVisible } from "../lib/site";
+import { useStored } from "../lib/use-stored";
 import { HighlightText } from "../components/highlight-text";
 import { PageHeading } from "../components/page-heading";
 import { FIGURE_FOR_SECTION, ReadingFigure } from "../components/reading-figures";
+
+const PATH_CHAPTER_KEYS = new Set(
+  CHAPTERS.map(([, , , doc, section]) => chapterKey(doc, section)),
+);
 
 type DocumentsSectionProps = {
   docIndex: number;
@@ -46,10 +67,10 @@ export function DocumentsSection({
   const activeFocus =
     focus && focus.di === safeDocIndex && focus.si === safeSection ? focus : null;
   const searchTerm = activeFocus ? activeFocus.query.trim() : "";
-  const figureAfter =
-    currentSection.paragraphs.length > 3
-      ? 2
-      : Math.max(currentSection.paragraphs.length - 1, 0);
+  const extraIndices = visibleIndices.filter(
+    (index) => !PATH_CHAPTER_KEYS.has(chapterKey(safeDocIndex, index)),
+  );
+  const figureAfter = Math.min(2, Math.max(currentSection.paragraphs.length - 1, 0));
 
   const goToSection = (index: number) => {
     if (!visibleIndices.includes(index)) return;
@@ -61,6 +82,11 @@ export function DocumentsSection({
   const [progress, setProgress] = useState(0);
   const [hitParagraph, setHitParagraph] = useState<number | null>(null);
   const [progressStatus, setProgressStatus] = useState("");
+  const [readingScale, setReadingScale] = useStored<number>(STORAGE_KEYS.readingScale, 100);
+  const scale = Math.min(130, Math.max(90, Math.round(readingScale / 10) * 10));
+  const adjustScale = (delta: number) =>
+    setReadingScale(Math.min(130, Math.max(90, scale + delta)));
+  const summary = CHAPTER_SUMMARIES[chapterKey(safeDocIndex, safeSection)];
 
   const importProgress = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -203,6 +229,23 @@ export function DocumentsSection({
           {progressStatus}
         </p>
       )}
+      {extraIndices.length > 0 && (
+        <details className="extra-sections">
+          <summary>
+            <span>Oltre il percorso · {extraIndices.length} approfondimenti in questo documento</span>
+            <span className="small-muted">Sezioni integrali non incluse nelle 6 tappe</span>
+          </summary>
+          <div className="extra-sections-list">
+            {extraIndices.map((index) => (
+              <button key={index} onClick={() => goToSection(index)}>
+                <span className="extra-index">0{visibleIndices.indexOf(index) + 1}</span>
+                <span>{currentDoc.sections[index].title.replace(/^\d+\. /, "")}</span>
+                <ArrowUpRight size={15} />
+              </button>
+            ))}
+          </div>
+        </details>
+      )}
       <div className="reader-layout">
         <aside className="reader-sidebar">
           <div className="label">INDICE DEL DOCUMENTO</div>
@@ -224,7 +267,24 @@ export function DocumentsSection({
             );
           })}
         </aside>
-        <article className="reading-paper" ref={paperRef} key={`${safeDocIndex}-${safeSection}`}>
+        <article
+          className="reading-paper"
+          ref={paperRef}
+          key={`${safeDocIndex}-${safeSection}`}
+          style={{ "--reading-scale": scale / 100 } as CSSProperties}
+        >
+          <div className="print-cover" aria-hidden="true">
+            <span className="print-cover-brand">IL FATTORE UMANO</span>
+            <h1>{currentSection.title.replace(/^\d+\. /, "")}</h1>
+            <p>{currentDoc.name}</p>
+            <p>prof. Riefolo Giovanni · Ferraris-Fermi, Verona</p>
+            <p>
+              Capitolo {position + 1} di {visibleIndices.length} ·{" "}
+              {currentSection.paragraphs.length} paragrafi · ~{minutes} min di lettura
+            </p>
+            <p className="print-cover-url">riefolog-cyber.github.io/aifattoredisumano</p>
+            <p>Versione 13 novembre 2026 · Uso didattico</p>
+          </div>
           <div className="reading-visual">
             <span className="reading-num" aria-hidden="true">
               {String(position + 1).padStart(2, "0")}
@@ -237,7 +297,37 @@ export function DocumentsSection({
               <span>{currentSection.paragraphs.length} paragrafi</span>
               <span>~{minutes} min di lettura</span>
             </div>
+            <div className="reading-tools" role="group" aria-label="Dimensione del testo">
+              <span className="label">TESTO</span>
+              <button
+                onClick={() => adjustScale(-10)}
+                disabled={scale <= 90}
+                aria-label="Riduci il testo"
+              >
+                A−
+              </button>
+              <span className="reading-scale" aria-live="polite">
+                {scale}%
+              </span>
+              <button
+                onClick={() => adjustScale(10)}
+                disabled={scale >= 130}
+                aria-label="Ingrandisci il testo"
+              >
+                A+
+              </button>
+            </div>
           </div>
+          {summary && (
+            <aside className="chapter-summary" aria-label="Sintesi in tre punti">
+              <span className="label">IN TRE PUNTI</span>
+              <ul>
+                {summary.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </aside>
+          )}
           <div className="reading-progress" aria-hidden="true">
             <span style={{ width: `${Math.round(progress * 100)}%` }} />
           </div>

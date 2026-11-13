@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { emptyQuizProgress, isQuizComplete, quizScore, type QuizQuestion } from "./quiz";
+import { quiz, quizAreas } from "../data/quiz";
+import {
+  emptyQuizProgress,
+  isQuizComplete,
+  quizScore,
+  selectQuizQuestions,
+  type QuizQuestion,
+} from "./quiz";
 
 const questions: QuizQuestion[] = [
   { q: "Domanda 1", a: ["A", "B"], correct: 0, explanation: "" },
@@ -26,5 +33,48 @@ describe("isQuizComplete", () => {
 
   it("è vero quando tutte le domande hanno una risposta", () => {
     expect(isQuizComplete({ ...emptyQuizProgress, answers: [0, 1, 1] }, questions)).toBe(true);
+  });
+});
+
+describe("banca domande", () => {
+  it("copre le sei aree e ha risposte valide", () => {
+    expect(quiz.length).toBeGreaterThanOrEqual(25);
+    expect(new Set(quiz.map((item) => item.area))).toEqual(new Set(quizAreas));
+    expect(new Set(quiz.map((item) => item.q)).size).toBe(quiz.length);
+    expect(
+      quiz.some((item) => /kranzberg|atlas of ai|crawford|floridi|zuboff/i.test(item.q + item.explanation)),
+    ).toBe(false);
+    const correctPositions = [0, 0, 0];
+    for (const item of quiz) {
+      expect(item.a).toHaveLength(3);
+      expect(item.correct).toBeGreaterThanOrEqual(0);
+      expect(item.correct).toBeLessThan(item.a.length);
+      expect(item.explanation.length).toBeGreaterThan(40);
+      correctPositions[item.correct] += 1;
+    }
+    for (const count of correctPositions) expect(count).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe("selectQuizQuestions", () => {
+  const bank = [
+    ...Array.from({ length: 4 }, (_, i) => ({ area: "A", q: `A${i}` })),
+    ...Array.from({ length: 4 }, (_, i) => ({ area: "B", q: `B${i}` })),
+    ...Array.from({ length: 4 }, (_, i) => ({ area: "C", q: `C${i}` })),
+  ];
+
+  it("estrae il numero richiesto e copre tutte le aree", () => {
+    const picked = selectQuizQuestions(bank, 6, 42);
+    expect(picked).toHaveLength(6);
+    expect(new Set(picked.map((item) => item.area))).toEqual(new Set(["A", "B", "C"]));
+  });
+
+  it("è stabile con lo stesso seed e cambia con seed diversi", () => {
+    expect(selectQuizQuestions(bank, 6, 7).map((item) => item.q)).toEqual(
+      selectQuizQuestions(bank, 6, 7).map((item) => item.q),
+    );
+    expect(selectQuizQuestions(bank, 6, 7).map((item) => item.q)).not.toEqual(
+      selectQuizQuestions(bank, 6, 8).map((item) => item.q),
+    );
   });
 });

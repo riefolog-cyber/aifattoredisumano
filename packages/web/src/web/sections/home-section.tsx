@@ -76,7 +76,7 @@ export function HomeSection({
               <BookOpen size={14} /> 6 capitoli tematici
             </span>
             <span>
-              <FileText size={14} /> 2 documenti originali
+              <FileText size={14} /> 11 sezioni integrali
             </span>
             <span>
               <ListChecks size={14} /> 10 domande
@@ -229,6 +229,10 @@ export function HomeSection({
               <span className="concept-map-action">
                 Apri la mappa <ArrowUpRight size={17} />
               </span>
+              <span className="concept-map-note">
+                File autonomo di circa 2 MB: si apre in una nuova scheda e richiede una
+                connessione.
+              </span>
             </span>
           </a>
           <div className="chapter-list">
@@ -259,6 +263,13 @@ export function HomeSection({
               </button>
             ))}
           </div>
+          <p className="path-note">
+            Il percorso segue 6 tappe scelte tra i due documenti. Le sezioni integrali sono 11: le
+            altre 5 restano leggibili come approfondimenti.{" "}
+            <button className="inline-link" onClick={() => onNavigate("Documenti")}>
+              Apri i documenti <ArrowUpRight size={13} />
+            </button>
+          </p>
         </div>
         <aside className="home-aside">
           <div className="lab-teaser">
@@ -331,6 +342,9 @@ export function HomeSection({
             </span>
           </button>
         </div>
+        <button className="text-button home-sources-link" onClick={() => onNavigate("Fonti")}>
+          Fonti, letture e crediti <ArrowUpRight size={15} />
+        </button>
       </section>
     </main>
   );

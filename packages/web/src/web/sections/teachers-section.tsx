@@ -30,6 +30,14 @@ const modules = [
 export function TeachersSection({ onNavigate, onRead, onOpenLab, onStartQuiz }: TeachersSectionProps) {
   return (
     <main className="inner-main" id="contenuto" tabIndex={-1}>
+      <div className="print-cover" aria-hidden="true">
+        <span className="print-cover-brand">IL FATTORE UMANO</span>
+        <h1>Guida didattica</h1>
+        <p>Obiettivi, tempi, valutazione e inclusione</p>
+        <p>prof. Riefolo Giovanni · Ferraris-Fermi, Verona</p>
+        <p className="print-cover-url">riefolog-cyber.github.io/aifattoredisumano</p>
+        <p>Versione 13 novembre 2026 · Uso didattico</p>
+      </div>
       <PageHeading
         label="GUIDA DIDATTICA · SCUOLA SECONDARIA"
         title="Porta il percorso in classe."
@@ -106,6 +114,13 @@ export function TeachersSection({ onNavigate, onRead, onOpenLab, onStartQuiz }: 
             <li>L'esito del quiz si esporta come promemoria personale: usatelo come autovalutazione, non come voto.</li>
             <li>Tutti i contenuti funzionano da tastiera e con lettori di schermo; i video rimandano a YouTube con sottotitoli.</li>
             <li>Nessun dato lascia il dispositivo: appunti, progressi e risultati vivono nel browser dello studente.</li>
+            <li>
+              <button className="inline-link" onClick={() => onNavigate("Fonti")}>
+                Fonti e letture <ArrowUpRight size={13} />
+              </button>{" "}
+              raccolgono riferimenti verificabili, crediti e criteri per distinguere dato,
+              interpretazione e ipotesi.
+            </li>
           </ul>
           <p className="teachers-note">
             Capitoli di riferimento:{" "}
@@ -118,6 +133,69 @@ export function TeachersSection({ onNavigate, onRead, onOpenLab, onStartQuiz }: 
               </span>
             ))}
           </p>
+        </section>
+
+        <section className="teachers-card rubric-card">
+          <span className="label">
+            <ClipboardCheck size={14} /> RUBRICA · AUTOVALUTAZIONE
+          </span>
+          <h3>Valutare il processo, non solo la risposta.</h3>
+          <p className="rubric-intro">
+            Quattro criteri, tre livelli. Usa la rubrica per il feedback e per l’autovalutazione;
+            non è una griglia di voto automatico.
+          </p>
+          <div className="rubric-scroll">
+            <table className="rubric-table">
+              <caption>Criteri per il dibattito e l’argomentazione</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Criterio</th>
+                  <th scope="col">In avvio</th>
+                  <th scope="col">In cammino</th>
+                  <th scope="col">Consolidato</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Tesi e comprensione</th>
+                  <td>La posizione non è chiara o non usa i concetti del capitolo.</td>
+                  <td>Tesi riconoscibile e qualche concetto chiave usato correttamente.</td>
+                  <td>Tesi chiara, concetti distinti e limiti riconosciuti.</td>
+                </tr>
+                <tr>
+                  <th scope="row">Argomentazione e prove</th>
+                  <td>Afferma senza esempi né prove.</td>
+                  <td>Porta un esempio pertinente.</td>
+                  <td>
+                    Usa esempi e controesempi; distingue fatti, interpretazioni e ipotesi.
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Ascolto e obiezione</th>
+                  <td>Interviene senza riformulare la posizione altrui.</td>
+                  <td>Riformula in parte e risponde.</td>
+                  <td>
+                    Riformula la tesi opposta e risponde nel merito, anche cambiando posizione.
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Linguaggio e voce</th>
+                  <td>Formule generiche o prese da un modello.</td>
+                  <td>Frasi chiare, lessico parziale.</td>
+                  <td>Lessico preciso, voce personale, registro adeguato.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="rubric-self">
+            <h4>Autovalutazione dello studente</h4>
+            <ul>
+              <li>So spiegare la tesi opposta con parole mie.</li>
+              <li>Ho portato almeno una prova e ho detto da dove viene.</li>
+              <li>Ho cambiato qualcosa nella mia posizione dopo il confronto? Perché?</li>
+              <li>Ho usato parole mie o formule prese da un modello?</li>
+            </ul>
+          </div>
         </section>
       </div>
     </main>

@@ -7,7 +7,15 @@ export const YOUTUBE_URL = "https://www.youtube.com/watch?v=szGJP-uXSaM";
 export const YOUTUBE_THUMB = "https://i.ytimg.com/vi/szGJP-uXSaM/maxresdefault.jpg";
 export const YOUTUBE_THUMB_FALLBACK = "https://i.ytimg.com/vi/szGJP-uXSaM/hqdefault.jpg";
 
-export const TABS = ["Percorso", "Documenti", "Laboratorio", "Glossario", "Dibattito", "Docenti"] as const;
+export const TABS = [
+  "Percorso",
+  "Documenti",
+  "Laboratorio",
+  "Glossario",
+  "Dibattito",
+  "Docenti",
+  "Fonti",
+] as const;
 export type Tab = (typeof TABS)[number];
 
 export const TAB_SLUGS: Record<Tab, string> = {
@@ -17,6 +25,7 @@ export const TAB_SLUGS: Record<Tab, string> = {
   Glossario: "glossario",
   Dibattito: "dibattito",
   Docenti: "docenti",
+  Fonti: "fonti",
 };
 
 export const PAGE_TITLES: Record<Tab, string> = {
@@ -26,15 +35,18 @@ export const PAGE_TITLES: Record<Tab, string> = {
   Glossario: "Glossario — Il Fattore Umano",
   Dibattito: "Dibattito — Il Fattore Umano",
   Docenti: "Per i docenti — Il Fattore Umano",
+  Fonti: "Fonti e letture — Il Fattore Umano",
 };
 
 /**
- * Sezioni estratte dai DOCX ma nascoste alla lettura: il glossario in coda
- * alla Guida didattica duplica la sezione Glossario dedicata, che resta
- * l'unico punto di accesso ai termini. Scelta mantenuta: i testi originali
- * restano intatti in documents.json, le sezioni duplicate non vengono mostrate.
+ * Il glossario in coda alla Guida didattica (0:5) duplica la sezione
+ * Glossario dedicata: resta nascosto per non ripetere gli stessi termini.
+ * La sezione 1:4 ("Temporalità Disintegrata") era nascosta per errore
+ * insieme al glossario ed è stata ripristinata. I testi restano in
+ * documents.json; la correzione editoriale del riferimento a Leone XIV è
+ * documentata nella pagina Fonti.
  */
-export const HIDDEN_SECTIONS: ReadonlySet<string> = new Set(["0:5", "1:4"]);
+export const HIDDEN_SECTIONS: ReadonlySet<string> = new Set(["0:5"]);
 
 export function isSectionVisible(docIndex: number, sectionIndex: number) {
   return !HIDDEN_SECTIONS.has(`${docIndex}:${sectionIndex}`);
@@ -46,6 +58,9 @@ export const STORAGE_KEYS = {
   bestScore: "fd-best-score",
   theme: "fd-theme",
   quiz: "fd-quiz",
+  quizSeed: "fd-quiz-seed",
+  quizVersion: "fd-quiz-version",
+  readingScale: "fd-reading-scale",
 } as const;
 
 export const CHAPTERS = [

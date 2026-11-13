@@ -21,6 +21,9 @@ export function SiteHeader({
   onOpenSearch,
 }: SiteHeaderProps) {
   const [mobileMenu, setMobileMenu] = useState(false);
+  // Fonti è una pagina di riferimento: si raggiunge dal footer e da Docenti,
+  // non occupa una voce nella navigazione principale.
+  const navTabs = TABS.filter((item) => item !== "Fonti");
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
 
@@ -68,7 +71,7 @@ export function SiteHeader({
         ref={navRef}
         aria-label="Navigazione principale"
       >
-        {TABS.map((item) => (
+        {navTabs.map((item) => (
           <button
             key={item}
             onClick={() => go(item)}

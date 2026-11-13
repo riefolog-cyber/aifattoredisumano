@@ -1,12 +1,23 @@
-import { lazy, Suspense, useEffect, type Dispatch, type SetStateAction } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { ArrowRight, Check, Download, Layers, ListChecks } from "lucide-react";
 import { quiz, quizAreas } from "../data/quiz";
 import { PageHeading } from "../components/page-heading";
 import { downloadText } from "../lib/download";
 import {
+  QUIZ_SIZE,
+  QUIZ_VERSION,
   emptyQuizProgress,
   isQuizComplete,
   quizScore,
+  selectQuizQuestions,
   type QuizProgress,
 } from "../lib/quiz";
 import { STORAGE_KEYS } from "../lib/site";
@@ -27,13 +38,36 @@ type LabSectionProps = {
   onBestScore: Dispatch<SetStateAction<number | null>>;
 };
 
-function AreaSummary({ answers }: { answers: (number | undefined)[] }) {
+function createQuizSeed() {
+  return Math.floor(Math.random() * 1_000_000_000) + 1;
+}
+
+function saveQuizSeed(seed: number) {
+  window.localStorage.setItem(STORAGE_KEYS.quizSeed, String(seed));
+}
+
+function readQuizSeed() {
+  const raw = window.localStorage.getItem(STORAGE_KEYS.quizSeed);
+  const value = raw ? Number(raw) : Number.NaN;
+  if (Number.isFinite(value) && value > 0) return value;
+  const seed = createQuizSeed();
+  saveQuizSeed(seed);
+  return seed;
+}
+
+function AreaSummary({
+  answers,
+  questions,
+}: {
+  answers: (number | undefined)[];
+  questions: typeof quiz;
+}) {
   const summary = quizAreas
     .map((area) => {
-      const indices = quiz
+      const indices = questions
         .map((item, index) => (item.area === area ? index : -1))
         .filter((index) => index >= 0);
-      const wrong = indices.filter((index) => answers[index] !== quiz[index].correct);
+      const wrong = indices.filter((index) => answers[index] !== questions[index].correct);
       return { area, total: indices.length, wrong: wrong.length };
     })
     .filter((entry) => entry.total > 0);
@@ -61,23 +95,47 @@ function AreaSummary({ answers }: { answers: (number | undefined)[] }) {
 
 export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }: LabSectionProps) {
   const [progress, setProgress] = useStored<QuizProgress>(STORAGE_KEYS.quiz, emptyQuizProgress);
+  const [seed, setSeed] = useState(readQuizSeed);
+  const questions = useMemo(() => selectQuizQuestions(quiz, QUIZ_SIZE, seed), [seed]);
   const answers = progress.answers;
-  const score = quizScore(answers, quiz);
-  const complete = isQuizComplete(progress, quiz);
-  const question = quiz[Math.min(progress.pos, quiz.length - 1)];
+  const score = quizScore(answers, questions);
+  const complete = isQuizComplete(progress, questions);
+  const question = questions[Math.min(progress.pos, questions.length - 1)];
+
+  // Le riprese salvate con una banca o un formato precedente non sono più
+  // allineate alle nuove estrazioni: si azzerano una sola volta.
+  useEffect(() => {
+    const key = STORAGE_KEYS.quizVersion;
+    if (window.localStorage.getItem(key) === String(QUIZ_VERSION)) return;
+    window.localStorage.setItem(key, String(QUIZ_VERSION));
+    setProgress(emptyQuizProgress);
+  }, [setProgress]);
 
   useEffect(() => {
     if (!complete) return;
     onBestScore((current) => (current === null || score > current ? score : current));
   }, [complete, score, onBestScore]);
 
+  const restartQuiz = () => {
+    const nextSeed = createQuizSeed();
+    saveQuizSeed(nextSeed);
+    setSeed(nextSeed);
+    setProgress(emptyQuizProgress);
+  };
+
+  const optionState = (index: number) => {
+    if (!progress.submitted) return progress.selected === index ? "picked" : "";
+    if (index === question.correct) return "correct";
+    return progress.selected === index ? "incorrect" : "";
+  };
+
   const exportResult = () => {
     const lines = [
       "IL FATTORE UMANO — ESITO DELL'AUTOVERIFICA",
       new Date().toLocaleString("it-IT"),
-      `Punteggio: ${score}/${quiz.length}`,
+      `Punteggio: ${score}/${questions.length}`,
       "",
-      ...quiz.map((item, index) => {
+      ...questions.map((item, index) => {
         const given = answers[index];
         return [
           `${index + 1}. ${item.q}`,
@@ -110,7 +168,7 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
           aria-pressed={labView === "quiz"}
           onClick={() => onLabViewChange("quiz")}
         >
-          <ListChecks size={17} /> Autoverifica · 10 domande
+          <ListChecks size={17} /> Autoverifica · {QUIZ_SIZE} domande
         </button>
       </div>
       {labView === "confronto" ? (
@@ -130,7 +188,7 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
               <span className="eyebrow">IL TUO RISULTATO</span>
               <h2>
                 {score}
-                <span>/10</span>
+                <span>/{questions.length}</span>
               </h2>
               <h3>
                 {score >= 8
@@ -139,11 +197,11 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
               </h3>
               <p>
                 Rileggi le spiegazioni e torna ai capitoli per approfondire. Miglior risultato
-                salvato in questo browser: {bestScore ?? score}/10.
+                salvato in questo browser: {bestScore ?? score}/{questions.length}.
               </p>
-              <AreaSummary answers={answers} />
+              <AreaSummary answers={answers} questions={questions} />
               <div className="results-review">
-                {quiz.map((item, index) => (
+                {questions.map((item, index) => (
                   <details key={item.q}>
                     <summary>
                       <span className={answers[index] === item.correct ? "right" : "wrong"}>
@@ -160,7 +218,7 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
                 ))}
               </div>
               <div className="quiz-result-actions">
-                <button className="primary" onClick={() => setProgress(emptyQuizProgress)}>
+                <button className="primary" onClick={restartQuiz}>
                   Riprova il quiz <ArrowRight size={17} />
                 </button>
                 <button className="text-button" onClick={exportResult}>
@@ -171,15 +229,17 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
           ) : (
             <>
               <div className="quiz-top">
-                <span className="label">DOMANDA {progress.pos + 1} / 10</span>
+                <span className="label">
+                  DOMANDA {progress.pos + 1} / {questions.length}
+                </span>
                 <span className="small-muted">
                   {answers.length > 0
-                    ? `Ripresa automatica · ${answers.length}/10 risposte`
+                    ? `Ripresa automatica · ${answers.length}/${questions.length} risposte`
                     : "Comprensione, non memorizzazione"}
                 </span>
               </div>
               <div className="quiz-progress">
-                <span style={{ width: `${progress.pos * 10}%` }} />
+                <span style={{ width: `${(progress.pos / questions.length) * 100}%` }} />
               </div>
               <h2>{question.q}</h2>
               <div className="answer-options">
@@ -189,14 +249,7 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
                     disabled={progress.submitted}
                     onClick={() => setProgress({ ...progress, selected: index })}
                     aria-pressed={progress.selected === index}
-                    className={
-                      (progress.selected === index ? "picked " : "") +
-                      (progress.submitted && index === question.correct
-                        ? "correct "
-                        : progress.submitted && progress.selected === index
-                          ? "incorrect"
-                          : "")
-                    }
+                    className={optionState(index)}
                   >
                     <span>{String.fromCharCode(65 + index)}</span>
                     {answer}
@@ -235,7 +288,9 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
                       })
                     }
                   >
-                    {progress.pos === quiz.length - 1 ? "Vedi il risultato" : "Prossima domanda"}
+                    {progress.pos === questions.length - 1
+                      ? "Vedi il risultato"
+                      : "Prossima domanda"}
                     <ArrowRight size={17} />
                   </button>
                 )}

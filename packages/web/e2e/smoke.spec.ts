@@ -214,14 +214,16 @@ test.describe("Il Fattore Umano", () => {
     await expect(page.locator(".mark-complete")).toContainText("Capitolo completato");
   });
 
-  test("in stampa restano solo i contenuti del capitolo", async ({ page }) => {
+  test("in stampa restano copertina e contenuti del capitolo", async ({ page }) => {
     await page.goto("/#/documenti/1/1");
     await expect(page.getByRole("button", { name: "Stampa / PDF" })).toBeVisible();
     await page.emulateMedia({ media: "print" });
     await expect(page.locator(".header")).toBeHidden();
     await expect(page.locator(".reading-footer")).toBeHidden();
     await expect(page.locator(".doc-toolbar")).toBeHidden();
-    await expect(page.locator(".reading-paper h2")).toBeVisible();
+    await expect(page.locator(".print-cover")).toBeVisible();
+    await expect(page.locator(".print-cover h1")).toContainText("Orientamento");
+    await expect(page.locator(".reading-visual")).toBeHidden();
   });
 
   test("la scorciatoia apre la ricerca e gli snippet evidenziano il termine", async ({ page }) => {
@@ -242,6 +244,93 @@ test.describe("Il Fattore Umano", () => {
     await expect(page.locator(".sr-only[role=\"status\"]")).toContainText(
       "Sezione Glossario aperta.",
     );
+  });
+
+  test("la sezione Temporalità Disintegrata è tornata leggibile", async ({ page }) => {
+    await page.goto("/#/documenti/2/5");
+    await expect(page.locator(".reading-paper h2")).toContainText("Temporalità Disintegrata");
+    await expect(page.locator(".reader-sidebar button")).toHaveCount(6);
+    await expect(page.locator(".concept-diagram")).toContainText("Presente istantaneo");
+  });
+
+  test("i capitoli mostrano la sintesi e i diagrammi leggibili", async ({ page }) => {
+    await page.goto("/#/documenti/2/2");
+    await expect(page.locator(".chapter-summary")).toContainText("IN TRE PUNTI");
+    await expect(page.locator(".chapter-summary li")).toHaveCount(3);
+    await expect(page.locator(".concept-diagram")).toContainText("Verifica");
+    await expect(page.locator(".concept-diagram")).toContainText("Delega totale");
+  });
+
+  test("a 390 px i diagrammi restano leggibili senza overflow", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/#/documenti/2/2");
+    const tops = await page.locator(".diagram-step").evaluateAll((nodes) =>
+      nodes.map((node) => Math.round(node.getBoundingClientRect().top)),
+    );
+    expect(new Set(tops).size).toBe(3);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth),
+    ).toBeLessThanOrEqual(1);
+
+    await page.goto("/#/laboratorio");
+    await page.getByRole("button", { name: /Autoverifica/ }).click();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth),
+    ).toBeLessThanOrEqual(1);
+  });
+
+  test("la dimensione del testo si regola e resta dopo il ricaricamento", async ({ page }) => {
+    await page.goto("/#/documenti/1/1");
+    const paragraph = page.locator(".paragraph-block p").first();
+    const before = await paragraph.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    await page.getByRole("button", { name: "Ingrandisci il testo" }).click();
+    const after = await paragraph.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    expect(after).toBeGreaterThan(before);
+    await page.reload();
+    await expect(page.locator(".reading-scale")).toHaveText("110%");
+  });
+
+  test("il quiz riprende posizione e risposte dopo il ricaricamento", async ({ page }) => {
+    await page.goto("/#/laboratorio");
+    await page.getByRole("button", { name: /Autoverifica/ }).click();
+    const first = await page.locator(".quiz-panel h2").textContent();
+    await page.locator(".answer-options button").first().click();
+    await page.getByRole("button", { name: /Verifica la risposta/ }).click();
+    await page.getByRole("button", { name: "Prossima domanda" }).click();
+    const second = await page.locator(".quiz-panel h2").textContent();
+
+    await page.reload();
+    await page.getByRole("button", { name: /Autoverifica/ }).click();
+    await expect(page.locator(".quiz-top .label")).toContainText("DOMANDA 2 / 10");
+    await expect(page.locator(".quiz-panel h2")).toHaveText(second ?? "");
+    await expect(page.locator(".quiz-top .small-muted")).toContainText("1/10 risposte");
+    expect(first).not.toBe(second);
+  });
+
+  test("i documenti distinguono le tappe dagli approfondimenti", async ({ page }) => {
+    await page.goto("/#/documenti/1/1");
+    const extra = page.locator("details.extra-sections");
+    await expect(extra).toBeVisible();
+    await extra.locator("summary").click();
+    await expect(extra).toContainText("Questionario di Autoverifica");
+  });
+
+  test("la pagina Fonti raccoglie riferimenti, crediti e revisione", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Fonti e letture" }).click();
+    await expect(page).toHaveURL(/#\/fonti$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Le fonti, e come verificarle.");
+    await expect(page.getByRole("link", { name: /Apri la fonte/ }).first()).toHaveAttribute(
+      "href",
+      /arete/,
+    );
+    await expect(page.locator(".revision-note")).toContainText("Leone XIV");
+  });
+
+  test("la guida docenti include la rubrica di autovalutazione", async ({ page }) => {
+    await page.goto("/#/docenti");
+    await expect(page.locator(".rubric-table")).toContainText("Ascolto e obiezione");
+    await expect(page.locator(".rubric-self")).toContainText("So spiegare la tesi opposta");
   });
 
   test("gli appunti del dibattito si salvano ed esportano in Markdown", async ({ page }) => {

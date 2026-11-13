@@ -1,16 +1,20 @@
 export type FigureKind =
   | "bussola"
-  | "circuiti"
   | "voci"
   | "clessidra"
   | "dialogo"
-  | "rete"
-  | "bilancia";
+  | "bilancia"
+  | "delega"
+  | "potere"
+  | "tempo";
 
 export type SectionFigure = {
   kind: FigureKind;
   caption: string;
 };
+
+const DELEGA_CAPTION =
+  "Tentativo, aiuto mirato, verifica: la sequenza che lascia competenza. La scorciatoia della delega totale salta il processo.";
 
 /**
  * Una figura illustrativa per capitolo della Biblioteca: grafica vettoriale
@@ -22,8 +26,8 @@ export const FIGURE_FOR_SECTION: Record<string, SectionFigure> = {
     caption: "La bussola orienta senza cambiare chi la impugna.",
   },
   "0:1": {
-    kind: "circuiti",
-    caption: "I circuiti non esercitati si potano: il cervello risparmia, la competenza si assottiglia.",
+    kind: "delega",
+    caption: DELEGA_CAPTION,
   },
   "0:2": {
     kind: "voci",
@@ -42,20 +46,21 @@ export const FIGURE_FOR_SECTION: Record<string, SectionFigure> = {
     caption: "Soppesare i fatti prima di giudicare.",
   },
   "1:1": {
-    kind: "circuiti",
-    caption: "Delegare tutto atrofizza i circuiti complessi.",
+    kind: "delega",
+    caption: DELEGA_CAPTION,
   },
   "1:2": {
     kind: "voci",
     caption: "Fluido non significa pensato: la forma non garantisce il pensiero.",
   },
   "1:3": {
-    kind: "rete",
-    caption: "Pochi nodi, molto potere: la rete accentrata.",
+    kind: "potere",
+    caption:
+      "Calcolo, dati, energia e regole convergono in pochi nodi: è lì che nasce la dipendenza.",
   },
   "1:4": {
-    kind: "clessidra",
-    caption: "L'istante divora la prospettiva.",
+    kind: "tempo",
+    caption: "L'istante senza memoria, e la linea che collega memoria, presente e progetto.",
   },
   "1:5": {
     kind: "dialogo",
@@ -64,15 +69,14 @@ export const FIGURE_FOR_SECTION: Record<string, SectionFigure> = {
 };
 
 const INK = "#33413c";
-const FAINT = "#9aa59e";
 const ACID = "#5f8607";
 
 function Frame({ children }: { children: React.ReactNode }) {
   return (
     <svg
       viewBox="0 0 400 150"
-      role="img"
       aria-hidden="true"
+      focusable="false"
       preserveAspectRatio="xMidYMid meet"
     >
       {children}
@@ -106,40 +110,6 @@ function Bussola() {
       <polygon points="200,115 206,75 194,75" fill="none" stroke={INK} strokeWidth="1.5" />
       <circle cx="200" cy="75" r="4" fill={INK} />
       <text x="200" y="140" textAnchor="middle" fontSize="9" fill={INK} fontFamily="monospace" letterSpacing="3">STRUMENTO · MENTE</text>
-    </Frame>
-  );
-}
-
-function Circuiti() {
-  const nodes: [number, number][] = [
-    [60, 45], [130, 30], [200, 55], [270, 35], [340, 60],
-    [90, 105], [170, 115], [250, 100], [320, 115],
-  ];
-  const links: [number, number][] = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 6], [2, 7], [3, 7], [3, 8], [5, 6], [6, 7], [7, 8]];
-  const pruned: [number, number][] = [[4, 8]];
-  return (
-    <Frame>
-      {links.map(([a, b], i) => (
-        <line
-          key={i}
-          x1={nodes[a][0]} y1={nodes[a][1]}
-          x2={nodes[b][0]} y2={nodes[b][1]}
-          stroke={INK} strokeWidth="1.5"
-        />
-      ))}
-      {pruned.map(([a, b], i) => (
-        <line
-          key={`p${i}`}
-          x1={nodes[a][0]} y1={nodes[a][1]}
-          x2={nodes[b][0]} y2={nodes[b][1]}
-          stroke={FAINT} strokeWidth="1.5" strokeDasharray="5 4"
-        />
-      ))}
-      {nodes.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="5" fill={i === 2 ? ACID : "#f5f5ed"} stroke={INK} strokeWidth="2" />
-      ))}
-      <circle cx={nodes[8][0]} cy={nodes[8][1]} r="9" fill="none" stroke={FAINT} strokeWidth="1" strokeDasharray="3 3" />
-      <text x="200" y="140" textAnchor="middle" fontSize="9" fill={INK} fontFamily="monospace" letterSpacing="3">USALO O PERDILO</text>
     </Frame>
   );
 }
@@ -190,24 +160,6 @@ function Dialogo() {
   );
 }
 
-function Rete() {
-  const sats: [number, number][] = [[90, 45], [150, 100], [250, 100], [310, 45], [200, 30], [120, 110]];
-  return (
-    <Frame>
-      {sats.map(([x, y], i) => (
-        <line key={i} x1="200" y1="72" x2={x} y2={y} stroke={INK} strokeWidth="1.25" opacity="0.7" />
-      ))}
-      {sats.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="6" fill="#f5f5ed" stroke={INK} strokeWidth="2" />
-      ))}
-      <circle cx="200" cy="72" r="16" fill={ACID} />
-      <circle cx="200" cy="72" r="16" fill="none" stroke={INK} strokeWidth="2" />
-      <circle cx="200" cy="72" r="5" fill="#f5f5ed" />
-      <text x="200" y="140" textAnchor="middle" fontSize="9" fill={INK} fontFamily="monospace" letterSpacing="3">POCHI NODI · MOLTO POTERE</text>
-    </Frame>
-  );
-}
-
 function Bilancia() {
   return (
     <Frame>
@@ -226,20 +178,114 @@ function Bilancia() {
   );
 }
 
+function DelegaDiagram() {
+  return (
+    <div className="concept-diagram">
+      <div className="diagram-steps">
+        <div className="diagram-step">
+          <span>01</span>
+          <strong>Tentativo</strong>
+          <small>Provo senza aiuto</small>
+        </div>
+        <span className="diagram-arrow" aria-hidden="true">
+          →
+        </span>
+        <div className="diagram-step">
+          <span>02</span>
+          <strong>Aiuto mirato</strong>
+          <small>Un indizio, non la risposta</small>
+        </div>
+        <span className="diagram-arrow" aria-hidden="true">
+          →
+        </span>
+        <div className="diagram-step">
+          <span>03</span>
+          <strong>Verifica</strong>
+          <small>Rifaccio senza supporto</small>
+        </div>
+      </div>
+      <div className="diagram-shortcut">
+        <strong>Delega totale</strong>
+        <span>il prodotto arriva, il processo no: resta il debito epistemico.</span>
+      </div>
+    </div>
+  );
+}
+
+function PotereDiagram() {
+  return (
+    <div className="concept-diagram">
+      <div className="diagram-power">
+        <div className="diagram-node" style={{ gridArea: "calcolo" }}>
+          Calcolo
+        </div>
+        <div className="diagram-node" style={{ gridArea: "dati" }}>
+          Dati
+        </div>
+        <div className="diagram-core">
+          <strong>Infrastruttura</strong>
+          <small>calcolo · dati · energia</small>
+        </div>
+        <div className="diagram-node" style={{ gridArea: "energia" }}>
+          Energia
+        </div>
+        <div className="diagram-node" style={{ gridArea: "regole" }}>
+          Regole
+        </div>
+      </div>
+      <p className="diagram-note">
+        Quattro risorse convergono in pochi nodi. Chi li controlla stabilisce accessi, costi e
+        possibilità di sviluppo.
+      </p>
+    </div>
+  );
+}
+
+function TempoDiagram() {
+  return (
+    <div className="concept-diagram">
+      <div className="diagram-time">
+        <div className="diagram-time-panel">
+          <span className="diagram-kicker">Presente istantaneo</span>
+          <div className="diagram-bars" aria-hidden="true">
+            {[92, 70, 84, 58, 76].map((width, index) => (
+              <span key={index} style={{ width: `${width}%` }} />
+            ))}
+          </div>
+          <small>Ogni istante vale per sé: manca il filo tra prima e dopo.</small>
+        </div>
+        <div className="diagram-time-panel">
+          <span className="diagram-kicker">Prospettiva</span>
+          <div className="diagram-timeline" aria-hidden="true">
+            <span>Memoria</span>
+            <i>→</i>
+            <span>Presente</span>
+            <i>→</i>
+            <span>Progetto</span>
+          </div>
+          <small>La memoria permette confronto, correzione e scelta.</small>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ReadingFigure({ kind }: { kind: FigureKind }) {
   switch (kind) {
+    case "delega":
+      return <DelegaDiagram />;
+    case "potere":
+      return <PotereDiagram />;
+    case "tempo":
+      return <TempoDiagram />;
     case "bussola":
       return <Bussola />;
-    case "circuiti":
-      return <Circuiti />;
     case "voci":
       return <Voci />;
     case "clessidra":
       return <Clessidra />;
     case "dialogo":
       return <Dialogo />;
-    case "rete":
-      return <Rete />;
     case "bilancia":
       return <Bilancia />;
   }

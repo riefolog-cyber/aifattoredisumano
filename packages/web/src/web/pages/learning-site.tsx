@@ -10,6 +10,7 @@ import { GlossarySection } from "../sections/glossary-section";
 import { HomeSection } from "../sections/home-section";
 import { TeachersSection } from "../sections/teachers-section";
 import { LabSection, type LabView } from "../sections/lab-section";
+import { SourcesSection } from "../sections/sources-section";
 import { downloadJson } from "../lib/download";
 import { buildProgressSnapshot, parseProgressSnapshot } from "../lib/progress";
 import { searchDocuments, type SearchResult } from "../lib/search";
@@ -295,6 +296,8 @@ export default function LearningSite() {
 
       {tab === "Dibattito" && <DebateSection />}
 
+      {tab === "Fonti" && <SourcesSection />}
+
       {tab === "Docenti" && (
         <TeachersSection
           onNavigate={go}
@@ -316,6 +319,7 @@ export default function LearningSite() {
           setSection(0);
           go("Documenti");
         }}
+        onOpenSources={() => go("Fonti")}
       />
 
       <UpdatePrompt />

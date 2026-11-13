@@ -55,6 +55,11 @@ export function isSectionVisible(docIndex: number, sectionIndex: number) {
 export const STORAGE_KEYS = {
   completed: "fd-completed",
   notes: "fd-notes",
+  debateStance: "fd-debate-stance",
+  debateMoves: "fd-debate-moves",
+  debateChallenges: "fd-debate-challenges",
+  debateFollowups: "fd-debate-followups",
+  debateAssumptions: "fd-debate-assumptions",
   bestScore: "fd-best-score",
   theme: "fd-theme",
   quiz: "fd-quiz",

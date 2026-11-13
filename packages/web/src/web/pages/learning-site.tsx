@@ -180,6 +180,14 @@ export default function LearningSite() {
   const selectResult = (result: SearchResult) =>
     read(result.di, result.si, { pi: result.pi, query: deferredQuery });
 
+  const openPassage = (doc: number, section: number, term: string) => {
+    const paragraphs = content.documents[doc]?.sections[section]?.paragraphs ?? [];
+    const pi = term
+      ? paragraphs.findIndex((paragraph) => paragraph.text.toLowerCase().includes(term.toLowerCase()))
+      : -1;
+    read(doc, section, pi >= 0 ? { pi, query: term } : undefined);
+  };
+
   const markSearchFocusShown = useCallback(() => {
     setSearchFocus((current) => (current && !current.shown ? { ...current, shown: true } : current));
   }, []);
@@ -289,6 +297,7 @@ export default function LearningSite() {
           bestScore={bestScore}
           onLabViewChange={setLabView}
           onBestScore={setBestScore}
+          onOpenPassage={openPassage}
         />
       )}
 

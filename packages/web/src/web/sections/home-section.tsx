@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { MindDiagram } from "../components/mind-diagram";
 import { AuthorCredit } from "../components/author-credit";
+import { ConceptMap } from "../components/concept-map";
 import {
   CHAPTERS,
   YOUTUBE_THUMB,
@@ -204,37 +205,7 @@ export function HomeSection({
             </div>
             <span className="small-muted">IL PERCORSO / 01—06</span>
           </div>
-          <a
-            className="concept-map-card"
-                          href={`${import.meta.env.BASE_URL}digimap-fattore-umano.html`}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            <span className="concept-map-shot">
-              <img
-                src={`${import.meta.env.BASE_URL}images/mappa-concettuale.jpg`}
-                alt="Anteprima della mappa concettuale interattiva del percorso"
-                loading="lazy"
-                decoding="async"
-              />
-              <span className="concept-map-badge">MAPPA CONCETTUALE · INTERATTIVA</span>
-            </span>
-            <span className="concept-map-copy">
-              <span className="eyebrow">UNA VISIONE D’INSIEME</span>
-              <strong>Esplora la mappa concettuale del percorso</strong>
-              <span>
-                Collegamenti tra cognizione, linguaggio, potere e autonomia: apri la mappa
-                interattiva per orientarti tra i temi e approfondirli.
-              </span>
-              <span className="concept-map-action">
-                Apri la mappa <ArrowUpRight size={17} />
-              </span>
-              <span className="concept-map-note">
-                File autonomo di circa 2 MB: si apre in una nuova scheda e richiede una
-                connessione.
-              </span>
-            </span>
-          </a>
+          <ConceptMap onOpenChapter={onRead} />
           <div className="chapter-list">
             {CHAPTERS.map(([title, description, tag, doc, section], order) => (
               <button

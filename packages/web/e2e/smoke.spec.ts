@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 
 test.describe("Il Fattore Umano", () => {
@@ -54,7 +55,8 @@ test.describe("Il Fattore Umano", () => {
     await expect(page.locator(".reader-sidebar button.selected")).toContainText(
       "La Mutazione Cognitiva",
     );
-    await expect(page.locator(".reading-paper h2")).toContainText("La Mutazione Cognitiva");
+    await expect(page.locator(".reading-paper h2")).toContainText("Il costo della delega");
+    await expect(page.locator(".cover-full-title")).toContainText("La Mutazione Cognitiva");
     await expect(page).toHaveURL(/#\/documenti\/2\/2$/);
   });
 
@@ -160,7 +162,16 @@ test.describe("Il Fattore Umano", () => {
         .click();
     }
     await expect(page.locator(".quiz-result")).toBeVisible();
+    await expect(page.locator(".quiz-portrait")).toBeVisible();
+    await expect(page.locator(".portrait-legend li")).toHaveCount(6);
+    const firstReview = page.locator(".results-review details").first();
+    await firstReview.locator("summary").click();
+    await expect(firstReview.getByRole("button", { name: /Vai al passaggio/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Copia esito/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /Esporta l.esito/ })).toBeVisible();
+    await firstReview.getByRole("button", { name: /Vai al passaggio/ }).click();
+    await expect(page).toHaveURL(/#\/documenti\/\d+\/\d+$/);
+    await expect(page.locator(".reading-paper")).toBeVisible();
   });
 
   test("il confronto dei modelli ha dodici attività senza la tappa 03", async ({ page }) => {
@@ -224,6 +235,7 @@ test.describe("Il Fattore Umano", () => {
     await expect(page.locator(".print-cover")).toBeVisible();
     await expect(page.locator(".print-cover h1")).toContainText("Orientamento");
     await expect(page.locator(".reading-visual")).toBeHidden();
+    await expect(page.locator(".chapter-cover")).toBeHidden();
   });
 
   test("la scorciatoia apre la ricerca e gli snippet evidenziano il termine", async ({ page }) => {
@@ -249,7 +261,7 @@ test.describe("Il Fattore Umano", () => {
   test("la sezione Temporalità Disintegrata è tornata leggibile", async ({ page }) => {
     await page.goto("/#/documenti/2/5");
     await expect(page.locator(".reading-paper h2")).toContainText("Temporalità Disintegrata");
-    await expect(page.locator(".reader-sidebar button")).toHaveCount(6);
+    await expect(page.locator(".reader-sidebar > button")).toHaveCount(6);
     await expect(page.locator(".concept-diagram")).toContainText("Presente istantaneo");
   });
 
@@ -257,17 +269,64 @@ test.describe("Il Fattore Umano", () => {
     await page.goto("/#/documenti/2/2");
     await expect(page.locator(".chapter-summary")).toContainText("IN TRE PUNTI");
     await expect(page.locator(".chapter-summary li")).toHaveCount(3);
-    await expect(page.locator(".concept-diagram")).toContainText("Verifica");
-    await expect(page.locator(".concept-diagram")).toContainText("Delega totale");
+    await expect(page.locator(".chapter-cover h2")).toContainText("Il costo della delega");
+    await expect(page.locator(".concept-diagram")).toContainText("Competenza trattenuta");
+    await page.getByRole("button", { name: "Oracolo", exact: true }).click();
+    await expect(page.locator(".concept-diagram")).toContainText("Il prodotto è perfetto");
+    await page.getByRole("button", { name: "Socratico", exact: true }).click();
+    await expect(page.locator(".concept-diagram")).toContainText("competenza che resta");
+  });
+
+  test("la card di condivisione scarica un PNG", async ({ page }) => {
+    await page.goto("/#/documenti/2/2");
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: /Scarica card/ }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/tappa-02\.png$/);
+  });
+
+  test("a 390 px la mappa offre un indice tattile delle tappe", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const index = page.locator(".map-index");
+    await expect(index).toBeVisible();
+    await expect(index.getByRole("button")).toHaveCount(6);
+    await index.getByRole("button", { name: /Il costo della delega/ }).click();
+    await expect(page).toHaveURL(/#\/documenti\/2\/2$/);
+  });
+
+  test("la modalità lettura isola il testo e si chiude con Esc", async ({ page }) => {
+    await page.goto("/#/documenti/2/2");
+    await page.getByRole("button", { name: "Modalità lettura" }).click();
+    await expect(page.locator(".header")).toBeHidden();
+    await expect(page.locator(".reader-sidebar")).toBeHidden();
+    await expect(page.locator(".reading-paper")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".header")).toBeVisible();
+  });
+
+  test("la mappa nativa filtra i temi, apre i capitoli e ha una mini-mappa", async ({ page }) => {
+    await page.goto("/");
+    const map = page.locator(".native-map");
+    await expect(map.locator(".map-node")).toHaveCount(6);
+    await map.getByRole("button", { name: "Potere" }).click();
+    await expect(map.locator(".map-node.active")).toHaveCount(1);
+    await map.getByRole("button", { name: /Apri la tappa 4/ }).click();
+    await expect(page).toHaveURL(/#\/documenti\/2\/4$/);
+    await expect(page.locator(".chapter-cover h2")).toContainText("Chi governa l’algoritmo?");
+
+    await page.locator(".mini-map").getByRole("button", { name: /Riprendersi il tempo/ }).click();
+    await expect(page).toHaveURL(/#\/documenti\/1\/4$/);
+    await expect(page.locator(".chapter-cover h2")).toContainText("Riprendersi il tempo");
   });
 
   test("a 390 px i diagrammi restano leggibili senza overflow", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/#/documenti/2/2");
-    const tops = await page.locator(".diagram-step").evaluateAll((nodes) =>
+    const tops = await page.locator(".diagram-meter").evaluateAll((nodes) =>
       nodes.map((node) => Math.round(node.getBoundingClientRect().top)),
     );
-    expect(new Set(tops).size).toBe(3);
+    expect(new Set(tops).size).toBe(2);
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth),
     ).toBeLessThanOrEqual(1);
@@ -331,10 +390,128 @@ test.describe("Il Fattore Umano", () => {
     await page.goto("/#/docenti");
     await expect(page.locator(".rubric-table")).toContainText("Ascolto e obiezione");
     await expect(page.locator(".rubric-self")).toContainText("So spiegare la tesi opposta");
+    await expect(page.locator(".teacher-pack")).toContainText("Poster del percorso");
+    await expect(page.locator(".teacher-pack")).toContainText("Scheda studente");
+  });
+
+  test("il dibattito reagisce alla posizione e alle tre mosse", async ({ page }) => {
+    await page.goto("/#/dibattito");
+    const slider = page.getByRole("slider", { name: "La mia posizione su questa traccia" });
+    await slider.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(slider).toHaveValue("3");
+    await expect(page.locator(".stance-state")).toContainText("Processo");
+    await page.getByRole("button", { name: /Mettiti dall/ }).click();
+    await expect(slider).toHaveValue("1");
+    await expect(page.locator(".stance-state")).toContainText("Prodotto");
+
+    await page.getByRole("button", { name: /Formula una tesi/ }).click();
+    await expect(page.locator(".method-status").first()).toContainText("1° scelta");
+    await expect(page.locator(".method-count")).toHaveText("1/3 mosse");
+    await expect(page.getByRole("button", { name: /Formula una tesi/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    const notes = page.getByRole("textbox", { name: "Il tuo spazio di riflessione" });
+    await expect(notes).toBeHidden();
+
+    await page.getByRole("button", { name: /Cerca un’obiezione/ }).click();
+    await page.getByRole("button", { name: /Apri una domanda/ }).click();
+    await expect(page.locator(".method-count")).toHaveText("3/3 mosse");
+    await expect(page.locator(".method-sequence li")).toHaveCount(3);
+    await expect(page.locator(".method-hint")).toContainText("Ordine corretto");
+    await expect(page.locator(".method-hint")).toHaveClass(/ok/);
+
+    await page.getByRole("button", { name: "Sposta Domanda indietro" }).click();
+    await expect(page.locator(".method-hint")).toContainText("L’ordine non regge");
+    await expect(page.locator(".method-hint")).toHaveClass(/wrong/);
+
+    await page.getByRole("button", { name: "Sposta Domanda avanti" }).click();
+    await expect(page.locator(".method-hint")).toContainText("Ordine corretto");
+    await expect(page.locator(".method-hint")).toHaveClass(/ok/);
+
+    const challenge = page.locator(".debate-challenge:not(.debate-assumption)");
+    await challenge
+      .getByRole("button", { name: /è il processo che costruisce/ })
+      .click();
+    await expect(challenge.locator(".challenge-head .challenge-state")).toHaveText(
+      "Replica forte",
+    );
+    await expect(challenge.locator(".challenge-feedback")).toContainText(
+      "Questa è la replica più forte",
+    );
+    await challenge
+      .getByRole("button", { name: /bozza è già il processo/ })
+      .click();
+    await expect(challenge.locator(".challenge-followup")).toContainText(
+      "Anche il secondo passaggio regge",
+    );
+    await challenge.getByRole("button", { name: "Riprova" }).click();
+    await expect(challenge.locator(".challenge-head .challenge-state")).toHaveText("Da provare");
+
+    const assumption = page.locator(".debate-assumption");
+    await assumption
+      .getByRole("button", { name: /Scrivere serve soltanto/ })
+      .click();
+    await expect(assumption.locator(".challenge-state")).toHaveText("Trovata");
+
+    await page.getByRole("button", { name: "Modalità aula" }).click();
+    const classroom = page.getByRole("dialog");
+    await expect(classroom).toBeVisible();
+    await expect(classroom).toContainText("ROUND 1 / 3");
+    await expect(classroom.locator(".classroom-agenda li")).toHaveCount(3);
+    await expect(classroom.locator(".classroom-agenda li.current")).toContainText("Tesi");
+    await expect(classroom.locator(".classroom-agenda")).toContainText("Obiezione");
+    await classroom.getByRole("button", { name: "2 minuti" }).click();
+    await expect(classroom.locator(".classroom-timer")).toHaveText("02:00");
+    await classroom.getByRole("button", { name: "Cambia il lato che inizia" }).click();
+    await expect(classroom.locator(".classroom-turn h3")).toHaveText("Processo");
+    await classroom.getByRole("button", { name: "Segna Obiezione" }).click();
+    await expect(classroom.getByRole("button", { name: "Segna Obiezione" })).toContainText("1");
+    await classroom.getByRole("button", { name: "Avvia" }).click();
+    await expect(classroom.getByRole("button", { name: "Pausa" })).toBeVisible();
+    await classroom.getByRole("button", { name: "Estrai una carta" }).click();
+    await expect(classroom.locator(".classroom-role-card")).toBeVisible();
+    await classroom.getByRole("button", { name: "Turno successivo" }).click();
+    await expect(classroom).toContainText("TURNO 2");
+    await expect(classroom.locator(".classroom-timer")).toHaveText("02:00");
+    await page.emulateMedia({ media: "print" });
+    await expect(classroom.locator(".classroom-sheet")).toBeVisible();
+    await expect(classroom.locator(".classroom-sheet")).toContainText("SCHEDA D’AULA");
+    await expect(classroom.locator(".classroom-stage")).toBeHidden();
+    await page.emulateMedia({ media: "screen" });
+    await page.keyboard.press("Escape");
+    await expect(classroom).toBeHidden();
+
+    await page.reload();
+    await expect(slider).toHaveValue("1");
+    await expect(page.locator(".method-count")).toHaveText("3/3 mosse");
+    await expect(page.locator(".method-sequence li")).toHaveCount(3);
+    await expect(page.locator(".debate-assumption .challenge-state")).toHaveText("Trovata");
+    await expect(page.locator(".debate-notebook summary")).toContainText("Scrivi solo se vuoi");
+    await expect(notes).toBeHidden();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole("button", { name: "Modalità aula" }).click();
+    const mobileClassroom = page.getByRole("dialog");
+    await expect(mobileClassroom.locator(".classroom-agenda li")).toHaveCount(3);
+    await expect(mobileClassroom.locator(".classroom-agenda")).toContainText("Obiezione");
+    await expect(mobileClassroom.getByRole("button", { name: "3 minuti" })).toBeVisible();
+    await expect(mobileClassroom.getByRole("button", { name: "Segna Domanda" })).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+    await page.keyboard.press("Escape");
+    await expect(mobileClassroom).toBeHidden();
   });
 
   test("gli appunti del dibattito si salvano ed esportano in Markdown", async ({ page }) => {
     await page.goto("/#/dibattito");
+    await page.getByRole("button", { name: /Formula una tesi/ }).click();
+    await page.getByRole("button", { name: /Cerca un’obiezione/ }).click();
+    await page.getByRole("button", { name: /Apri una domanda/ }).click();
+    await page.locator(".debate-notebook summary").click();
     const notes = page.getByRole("textbox", { name: "Il tuo spazio di riflessione" });
     await notes.fill("La mia tesi di prova.");
     await expect(page.locator(".notes-counter")).toContainText("caratteri");
@@ -343,8 +520,13 @@ test.describe("Il Fattore Umano", () => {
     await page.getByRole("button", { name: "Esporta tutti gli appunti" }).first().click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe("il-fattore-umano-appunti.md");
+    const downloadPath = await download.path();
+    expect(downloadPath).not.toBeNull();
+    const markdown = await readFile(downloadPath!, "utf8");
+    expect(markdown).toContain("**Scaletta verificata:** Tesi → Obiezione → Domanda");
 
     await page.reload();
+    await page.locator(".debate-notebook summary").click();
     await expect(notes).toHaveValue("La mia tesi di prova.");
   });
 });

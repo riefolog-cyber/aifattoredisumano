@@ -66,6 +66,8 @@ export function MindDiagram() {
           <path
             key={i}
             d={d}
+            className="mind-branch"
+            style={{ animationDelay: `${i * 0.12}s` }}
             stroke="#d5f86f"
             strokeWidth={i === 0 ? 2.2 : 1.4}
             strokeLinecap="round"
@@ -73,7 +75,14 @@ export function MindDiagram() {
         ))}
         <path d="M245 76V391" stroke="#d5f86f" strokeWidth="1.4" />
         {circuits.map((d, i) => (
-          <path key={i} d={d} stroke="#8faaa6" strokeWidth="1.5" />
+          <path
+            key={i}
+            d={d}
+            className="mind-circuit"
+            style={{ animationDelay: `${i * 0.18}s` }}
+            stroke="#8faaa6"
+            strokeWidth="1.5"
+          />
         ))}
         {[
           [388, 143],
@@ -92,7 +101,17 @@ export function MindDiagram() {
           [313, 371],
           [427, 165],
         ].map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="4" fill="#192329" stroke="#b6d4cd" strokeWidth="1.3" />
+          <circle
+            key={i}
+            className="mind-node"
+            style={{ animationDelay: `${i * 0.22}s` }}
+            cx={x}
+            cy={y}
+            r="4"
+            fill="#192329"
+            stroke="#b6d4cd"
+            strokeWidth="1.3"
+          />
         ))}
         {[
           [157, 105],
@@ -106,7 +125,15 @@ export function MindDiagram() {
           [179, 227],
           [245, 211],
         ].map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="3" fill="#d5f86f" />
+          <circle
+            key={i}
+            className="mind-synapse"
+            style={{ animationDelay: `${i * 0.3}s` }}
+            cx={x}
+            cy={y}
+            r="3"
+            fill="#d5f86f"
+          />
         ))}
         <path d="M48 62H68M58 52V72M438 401H458M448 391V411" stroke="#819087" />
         <text x="40" y="436" fill="#a3b09f" fontSize="9" fontFamily="monospace">

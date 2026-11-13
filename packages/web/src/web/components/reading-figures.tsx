@@ -1,6 +1,14 @@
+import {
+  DelegaSimulator,
+  PotereExplorer,
+  TempoSwitch,
+  VoceSwitch,
+} from "./interactive-figures";
+
 export type FigureKind =
   | "bussola"
   | "voci"
+  | "voci-interattive"
   | "clessidra"
   | "dialogo"
   | "bilancia"
@@ -17,8 +25,8 @@ const DELEGA_CAPTION =
   "Tentativo, aiuto mirato, verifica: la sequenza che lascia competenza. La scorciatoia della delega totale salta il processo.";
 
 /**
- * Una figura illustrativa per capitolo della Biblioteca: grafica vettoriale
- * leggera sul tema del testo, senza modificare i contenuti originali.
+ * Una figura per capitolo della Biblioteca: illustrazioni leggere per i capitoli
+ * introduttivi, simulazioni manovrabili per i concetti che richiedono pratica.
  */
 export const FIGURE_FOR_SECTION: Record<string, SectionFigure> = {
   "0:0": {
@@ -42,15 +50,15 @@ export const FIGURE_FOR_SECTION: Record<string, SectionFigure> = {
     caption: "Domanda e risposta: il dialogo che fa pensare.",
   },
   "1:0": {
-    kind: "bilancia",
-    caption: "Soppesare i fatti prima di giudicare.",
+    kind: "bussola",
+    caption: "La bussola orienta senza cambiare chi la impugna.",
   },
   "1:1": {
     kind: "delega",
     caption: DELEGA_CAPTION,
   },
   "1:2": {
-    kind: "voci",
+    kind: "voci-interattive",
     caption: "Fluido non significa pensato: la forma non garantisce il pensiero.",
   },
   "1:3": {
@@ -178,106 +186,16 @@ function Bilancia() {
   );
 }
 
-function DelegaDiagram() {
-  return (
-    <div className="concept-diagram">
-      <div className="diagram-steps">
-        <div className="diagram-step">
-          <span>01</span>
-          <strong>Tentativo</strong>
-          <small>Provo senza aiuto</small>
-        </div>
-        <span className="diagram-arrow" aria-hidden="true">
-          →
-        </span>
-        <div className="diagram-step">
-          <span>02</span>
-          <strong>Aiuto mirato</strong>
-          <small>Un indizio, non la risposta</small>
-        </div>
-        <span className="diagram-arrow" aria-hidden="true">
-          →
-        </span>
-        <div className="diagram-step">
-          <span>03</span>
-          <strong>Verifica</strong>
-          <small>Rifaccio senza supporto</small>
-        </div>
-      </div>
-      <div className="diagram-shortcut">
-        <strong>Delega totale</strong>
-        <span>il prodotto arriva, il processo no: resta il debito epistemico.</span>
-      </div>
-    </div>
-  );
-}
-
-function PotereDiagram() {
-  return (
-    <div className="concept-diagram">
-      <div className="diagram-power">
-        <div className="diagram-node" style={{ gridArea: "calcolo" }}>
-          Calcolo
-        </div>
-        <div className="diagram-node" style={{ gridArea: "dati" }}>
-          Dati
-        </div>
-        <div className="diagram-core">
-          <strong>Infrastruttura</strong>
-          <small>calcolo · dati · energia</small>
-        </div>
-        <div className="diagram-node" style={{ gridArea: "energia" }}>
-          Energia
-        </div>
-        <div className="diagram-node" style={{ gridArea: "regole" }}>
-          Regole
-        </div>
-      </div>
-      <p className="diagram-note">
-        Quattro risorse convergono in pochi nodi. Chi li controlla stabilisce accessi, costi e
-        possibilità di sviluppo.
-      </p>
-    </div>
-  );
-}
-
-function TempoDiagram() {
-  return (
-    <div className="concept-diagram">
-      <div className="diagram-time">
-        <div className="diagram-time-panel">
-          <span className="diagram-kicker">Presente istantaneo</span>
-          <div className="diagram-bars" aria-hidden="true">
-            {[92, 70, 84, 58, 76].map((width, index) => (
-              <span key={index} style={{ width: `${width}%` }} />
-            ))}
-          </div>
-          <small>Ogni istante vale per sé: manca il filo tra prima e dopo.</small>
-        </div>
-        <div className="diagram-time-panel">
-          <span className="diagram-kicker">Prospettiva</span>
-          <div className="diagram-timeline" aria-hidden="true">
-            <span>Memoria</span>
-            <i>→</i>
-            <span>Presente</span>
-            <i>→</i>
-            <span>Progetto</span>
-          </div>
-          <small>La memoria permette confronto, correzione e scelta.</small>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function ReadingFigure({ kind }: { kind: FigureKind }) {
   switch (kind) {
     case "delega":
-      return <DelegaDiagram />;
+      return <DelegaSimulator />;
     case "potere":
-      return <PotereDiagram />;
+      return <PotereExplorer />;
     case "tempo":
-      return <TempoDiagram />;
+      return <TempoSwitch />;
+    case "voci-interattive":
+      return <VoceSwitch />;
     case "bussola":
       return <Bussola />;
     case "voci":

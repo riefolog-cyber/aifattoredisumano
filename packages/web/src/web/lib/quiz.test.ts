@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { quiz, quizAreas } from "../data/quiz";
+import { QUIZ_SOURCES } from "../data/quiz-sources";
+import documents from "../data/documents.json";
 import {
   emptyQuizProgress,
   isQuizComplete,
@@ -53,6 +55,20 @@ describe("banca domande", () => {
       correctPositions[item.correct] += 1;
     }
     for (const count of correctPositions) expect(count).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe("riferimenti al testo", () => {
+  it("ogni domanda rimanda a un passaggio realmente presente", () => {
+    expect(QUIZ_SOURCES).toHaveLength(quiz.length);
+    QUIZ_SOURCES.forEach((source, index) => {
+      const section = documents.documents[source.doc]?.sections[source.section];
+      expect(section, `domanda ${index + 1}: sezione ${source.doc}:${source.section}`).toBeDefined();
+      const found = section?.paragraphs.some((paragraph) =>
+        paragraph.text.toLowerCase().includes(source.term.toLowerCase()),
+      );
+      expect(found, `domanda ${index + 1}: termine «${source.term}»`).toBe(true);
+    });
   });
 });
 

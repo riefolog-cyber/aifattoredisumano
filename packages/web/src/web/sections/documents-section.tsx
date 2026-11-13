@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Maximize2,
+  Minimize2,
   Printer,
   Search,
   Upload,
@@ -22,10 +24,21 @@ import { useStored } from "../lib/use-stored";
 import { HighlightText } from "../components/highlight-text";
 import { PageHeading } from "../components/page-heading";
 import { FIGURE_FOR_SECTION, ReadingFigure } from "../components/reading-figures";
+import { ChapterCover } from "../components/chapter-cover";
+import { ChapterShare } from "../components/chapter-share";
+import { MiniMap } from "../components/concept-map";
+import { PATH_BY_KEY, PATH_CHAPTERS } from "../data/path";
 
 const PATH_CHAPTER_KEYS = new Set(
   CHAPTERS.map(([, , , doc, section]) => chapterKey(doc, section)),
 );
+
+function isTableParagraph(text: string) {
+  return (
+    text.includes(",") &&
+    /^Gruppo|^Controllo,|^IA Oracolo,|^IA Socratico,|^Modello|^Approccio/.test(text)
+  );
+}
 
 type DocumentsSectionProps = {
   docIndex: number;
@@ -83,10 +96,28 @@ export function DocumentsSection({
   const [hitParagraph, setHitParagraph] = useState<number | null>(null);
   const [progressStatus, setProgressStatus] = useState("");
   const [readingScale, setReadingScale] = useStored<number>(STORAGE_KEYS.readingScale, 100);
+  const [focusMode, setFocusMode] = useState(false);
   const scale = Math.min(130, Math.max(90, Math.round(readingScale / 10) * 10));
   const adjustScale = (delta: number) =>
     setReadingScale(Math.min(130, Math.max(90, scale + delta)));
   const summary = CHAPTER_SUMMARIES[chapterKey(safeDocIndex, safeSection)];
+  const pathChapter = PATH_BY_KEY.get(chapterKey(safeDocIndex, safeSection));
+  const pullAfter = pathChapter ? Math.min(3, Math.max(currentSection.paragraphs.length - 1, 0)) : -1;
+  const leadIndex = currentSection.paragraphs.findIndex(
+    (paragraph) => !paragraph.style.startsWith("Heading") && !isTableParagraph(paragraph.text),
+  );
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("reading-focus", focusMode);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFocusMode(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.documentElement.classList.remove("reading-focus");
+    };
+  }, [focusMode]);
 
   const importProgress = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -248,6 +279,14 @@ export function DocumentsSection({
       )}
       <div className="reader-layout">
         <aside className="reader-sidebar">
+          <MiniMap
+            doc={safeDocIndex}
+            section={safeSection}
+            onSelect={(doc, section) => {
+              onSelectDoc(doc);
+              onSelectSection(section);
+            }}
+          />
           <div className="label">INDICE DEL DOCUMENTO</div>
           {visibleIndices.map((index) => {
             const item = currentDoc.sections[index];
@@ -285,18 +324,29 @@ export function DocumentsSection({
             <p className="print-cover-url">riefolog-cyber.github.io/aifattoredisumano</p>
             <p>Versione 13 novembre 2026 · Uso didattico</p>
           </div>
-          <div className="reading-visual">
-            <span className="reading-num" aria-hidden="true">
-              {String(position + 1).padStart(2, "0")}
-            </span>
-            <div className="reading-meta">
-              {currentDoc.name} <span>CAPITOLO {position + 1} / {visibleIndices.length}</span>
+          {pathChapter ? (
+            <ChapterCover
+              chapter={pathChapter}
+              fullTitle={currentSection.title}
+              total={PATH_CHAPTERS.length}
+              minutes={minutes}
+            />
+          ) : (
+            <div className="reading-visual">
+              <span className="reading-num" aria-hidden="true">
+                {String(position + 1).padStart(2, "0")}
+              </span>
+              <div className="reading-meta">
+                {currentDoc.name} <span>CAPITOLO {position + 1} / {visibleIndices.length}</span>
+              </div>
+              <h2>{currentSection.title.replace(/^\d+\. /, "")}</h2>
+              <div className="reading-stats">
+                <span>{currentSection.paragraphs.length} paragrafi</span>
+                <span>~{minutes} min di lettura</span>
+              </div>
             </div>
-            <h2>{currentSection.title.replace(/^\d+\. /, "")}</h2>
-            <div className="reading-stats">
-              <span>{currentSection.paragraphs.length} paragrafi</span>
-              <span>~{minutes} min di lettura</span>
-            </div>
+          )}
+          <div className="reading-tools-row">
             <div className="reading-tools" role="group" aria-label="Dimensione del testo">
               <span className="label">TESTO</span>
               <button
@@ -317,7 +367,20 @@ export function DocumentsSection({
                 A+
               </button>
             </div>
+            <button
+              className="reading-mode-button"
+              aria-pressed={focusMode}
+              onClick={() => setFocusMode((value) => !value)}
+            >
+              {focusMode ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+              {focusMode ? "Modalità normale" : "Modalità lettura"}
+            </button>
           </div>
+          {focusMode && (
+            <button className="focus-exit" onClick={() => setFocusMode(false)}>
+              <Minimize2 size={16} /> Esci dalla lettura
+            </button>
+          )}
           {summary && (
             <aside className="chapter-summary" aria-label="Sintesi in tre punti">
               <span className="label">IN TRE PUNTI</span>
@@ -328,6 +391,16 @@ export function DocumentsSection({
               </ul>
             </aside>
           )}
+          {pathChapter && (
+            <aside className="margin-note">
+              <span className="label">PAROLA CHIAVE</span>
+              <strong>{pathChapter.marginTerm}</strong>
+              <p>{pathChapter.marginText}</p>
+              <a href="#/glossario">
+                Apri il glossario <ArrowUpRight size={12} />
+              </a>
+            </aside>
+          )}
           <div className="reading-progress" aria-hidden="true">
             <span style={{ width: `${Math.round(progress * 100)}%` }} />
           </div>
@@ -335,11 +408,7 @@ export function DocumentsSection({
             const figure =
               index === figureAfter ? FIGURE_FOR_SECTION[`${safeDocIndex}:${safeSection}`] : undefined;
             const heading = paragraph.style.startsWith("Heading");
-            const table =
-              paragraph.text.includes(",") &&
-              /^Gruppo|^Controllo,|^IA Oracolo,|^IA Socratico,|^Modello|^Approccio/.test(
-                paragraph.text,
-              );
+            const table = isTableParagraph(paragraph.text);
             return (
               <div
                 className={`paragraph-block${hitParagraph === index ? " search-hit" : ""}`}
@@ -361,13 +430,27 @@ export function DocumentsSection({
                     <HighlightText text={paragraph.text} term={searchTerm} />
                   </div>
                 ) : (
-                  <p className={paragraph.text.startsWith("Risposta") ? "original-answer" : ""}>
+                  <p
+                    className={[
+                      paragraph.text.startsWith("Risposta") ? "original-answer" : "",
+                      index === leadIndex ? "lead" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
                     <HighlightText text={paragraph.text} term={searchTerm} />
                   </p>
+                )}
+                {pathChapter && index === pullAfter && (
+                  <blockquote className="pull-quote">
+                    “{pathChapter.quote}”
+                    <cite>{pathChapter.quoteSource}</cite>
+                  </blockquote>
                 )}
               </div>
             );
           })}
+          {pathChapter && <ChapterShare chapter={pathChapter} />}
           <div className="reading-footer">
             <button
               disabled={position <= 0}

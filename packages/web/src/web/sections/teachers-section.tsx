@@ -1,5 +1,6 @@
 import { ArrowUpRight, Clock, ClipboardCheck, Users, BookOpen, Printer } from "lucide-react";
 import { PageHeading } from "../components/page-heading";
+import { PATH_CHAPTERS } from "../data/path";
 import { CHAPTERS, type Tab } from "../lib/site";
 
 type TeachersSectionProps = {
@@ -28,6 +29,13 @@ const modules = [
 ];
 
 export function TeachersSection({ onNavigate, onRead, onOpenLab, onStartQuiz }: TeachersSectionProps) {
+  const printSheet = (mode: "poster" | "worksheet") => {
+    const className = `print-${mode}`;
+    document.body.classList.add(className);
+    window.print();
+    window.setTimeout(() => document.body.classList.remove(className), 1000);
+  };
+
   return (
     <main className="inner-main" id="contenuto" tabIndex={-1}>
       <div className="print-cover" aria-hidden="true">
@@ -135,6 +143,34 @@ export function TeachersSection({ onNavigate, onRead, onOpenLab, onStartQuiz }: 
           </p>
         </section>
 
+        <section className="teachers-card teacher-pack">
+          <span className="label">
+            <Printer size={14} /> PACCHETTO CLASSE
+          </span>
+          <h3>Porta via il percorso.</h3>
+          <p>
+            Tre stampati pronti: il poster delle sei tappe per la parete, la scheda di lettura per
+            gli studenti e la guida completa con la rubrica.
+          </p>
+          <div className="teacher-pack-actions">
+            <button onClick={() => printSheet("poster")}>
+              <Printer size={14} /> Poster del percorso
+            </button>
+            <button onClick={() => printSheet("worksheet")}>
+              <Printer size={14} /> Scheda studente
+            </button>
+            <button onClick={() => window.print()}>
+              <Printer size={14} /> Guida completa
+            </button>
+          </div>
+          <p className="teachers-note">
+            La chiave del questionario è nella Guida didattica, capitolo 5.{" "}
+            <button className="inline-link" onClick={() => onRead(0, 4)}>
+              Apri la chiave <ArrowUpRight size={13} />
+            </button>
+          </p>
+        </section>
+
         <section className="teachers-card rubric-card">
           <span className="label">
             <ClipboardCheck size={14} /> RUBRICA · AUTOVALUTAZIONE
@@ -195,6 +231,56 @@ export function TeachersSection({ onNavigate, onRead, onOpenLab, onStartQuiz }: 
               <li>Ho cambiato qualcosa nella mia posizione dopo il confronto? Perché?</li>
               <li>Ho usato parole mie o formule prese da un modello?</li>
             </ul>
+          </div>
+        </section>
+
+        <section className="poster-sheet" aria-hidden="true">
+          <span className="print-cover-brand">IL FATTORE UMANO</span>
+          <h1>Il percorso in sei tappe</h1>
+          <p className="sheet-deck">
+            Una mappa per orientarsi tra cognizione, linguaggio, potere e autonomia.
+          </p>
+          <ol className="poster-list">
+            {PATH_CHAPTERS.map((chapter) => (
+              <li key={chapter.order}>
+                <b>0{chapter.order}</b>
+                <div>
+                  <span>{chapter.tag}</span>
+                  <strong>{chapter.shortTitle}</strong>
+                  <small>{chapter.deck}</small>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="sheet-footer">
+            prof. Riefolo Giovanni · Ferraris-Fermi, Verona
+            <br />
+            riefolog-cyber.github.io/aifattoredisumano
+          </p>
+        </section>
+
+        <section className="worksheet-sheet" aria-hidden="true">
+          <span className="print-cover-brand">IL FATTORE UMANO · SCHEDA STUDENTE</span>
+          <h1>Leggere, fermarsi, interrogare.</h1>
+          <p className="sheet-deck">Nome: ______________________ Classe: __________ Data: __________</p>
+          <ol className="worksheet-list">
+            {PATH_CHAPTERS.map((chapter) => (
+              <li key={chapter.order}>
+                <strong>
+                  0{chapter.order}. {chapter.shortTitle}
+                </strong>
+                <span>Una frase da ricordare:</span>
+                <i />
+                <span>Una domanda che resta aperta:</span>
+                <i />
+              </li>
+            ))}
+          </ol>
+          <div className="worksheet-final">
+            <strong>Dopo il percorso: la mia tesi in tre righe.</strong>
+            <i />
+            <i />
+            <i />
           </div>
         </section>
       </div>

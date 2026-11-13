@@ -7,8 +7,20 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { ArrowRight, Check, Download, Layers, ListChecks } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  Copy,
+  Download,
+  Layers,
+  ListChecks,
+  Printer,
+} from "lucide-react";
 import { quiz, quizAreas } from "../data/quiz";
+import { QUIZ_AREA_CHAPTER } from "../data/path";
+import { QUIZ_SOURCES } from "../data/quiz-sources";
+import { QuizPortrait } from "../components/quiz-portrait";
 import { PageHeading } from "../components/page-heading";
 import { downloadText } from "../lib/download";
 import {
@@ -19,6 +31,7 @@ import {
   quizScore,
   selectQuizQuestions,
   type QuizProgress,
+  type QuizQuestion,
 } from "../lib/quiz";
 import { STORAGE_KEYS } from "../lib/site";
 import { useStored } from "../lib/use-stored";
@@ -36,6 +49,7 @@ type LabSectionProps = {
   bestScore: number | null;
   onLabViewChange: (view: LabView) => void;
   onBestScore: Dispatch<SetStateAction<number | null>>;
+  onOpenPassage: (doc: number, section: number, term: string) => void;
 };
 
 function createQuizSeed() {
@@ -55,52 +69,35 @@ function readQuizSeed() {
   return seed;
 }
 
-function AreaSummary({
-  answers,
-  questions,
-}: {
-  answers: (number | undefined)[];
-  questions: typeof quiz;
-}) {
-  const summary = quizAreas
-    .map((area) => {
-      const indices = questions
-        .map((item, index) => (item.area === area ? index : -1))
-        .filter((index) => index >= 0);
-      const wrong = indices.filter((index) => answers[index] !== questions[index].correct);
-      return { area, total: indices.length, wrong: wrong.length };
-    })
-    .filter((entry) => entry.total > 0);
-  const weak = summary.filter((entry) => entry.wrong > 0);
-  return (
-    <div className="quiz-areas" aria-live="polite">
-      <span className="label">DOVE CONCENTRARTI</span>
-      {weak.length === 0 ? (
-        <p className="areas-ok">Nessun punto debole: hai colto tutte le aree del percorso.</p>
-      ) : (
-        <ul>
-          {weak.map((entry) => (
-            <li key={entry.area}>
-              <strong>{entry.area}</strong>
-              <span>
-                {entry.wrong} da rivedere su {entry.total}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }: LabSectionProps) {
+export function LabSection({
+  labView,
+  bestScore,
+  onLabViewChange,
+  onBestScore,
+  onOpenPassage,
+}: LabSectionProps) {
   const [progress, setProgress] = useStored<QuizProgress>(STORAGE_KEYS.quiz, emptyQuizProgress);
   const [seed, setSeed] = useState(readQuizSeed);
+  const [shareStatus, setShareStatus] = useState("");
   const questions = useMemo(() => selectQuizQuestions(quiz, QUIZ_SIZE, seed), [seed]);
   const answers = progress.answers;
   const score = quizScore(answers, questions);
   const complete = isQuizComplete(progress, questions);
   const question = questions[Math.min(progress.pos, questions.length - 1)];
+  const areaResults = quizAreas
+    .map((area) => {
+      const rows = questions
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => item.area === area);
+      return {
+        area,
+        total: rows.length,
+        correct: rows.filter(({ item, index }) => answers[index] === item.correct).length,
+      };
+    })
+    .filter((entry) => entry.total > 0);
+  const sourceFor = (item: QuizQuestion) =>
+    QUIZ_SOURCES[quiz.findIndex((entry) => entry.q === item.q)];
 
   // Le riprese salvate con una banca o un formato precedente non sono più
   // allineate alle nuove estrazioni: si azzerano una sola volta.
@@ -135,6 +132,10 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
       new Date().toLocaleString("it-IT"),
       `Punteggio: ${score}/${questions.length}`,
       "",
+      ...areaResults.map(
+        (entry) => `${entry.area}: ${entry.correct}/${entry.total}`,
+      ),
+      "",
       ...questions.map((item, index) => {
         const given = answers[index];
         return [
@@ -146,6 +147,21 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
       }),
     ];
     downloadText("il-fattore-umano-esito.txt", lines.join("\n\n"));
+  };
+
+  const copyResult = async () => {
+    const text = [
+      "IL FATTORE UMANO — RITRATTO DELL'AUTOVERIFICA",
+      `Punteggio: ${score}/${questions.length}`,
+      ...areaResults.map((entry) => `${entry.area}: ${entry.correct}/${entry.total}`),
+      "riefolog-cyber.github.io/aifattoredisumano",
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareStatus("Esito copiato negli appunti.");
+    } catch {
+      setShareStatus("Copia non disponibile in questo browser.");
+    }
   };
 
   return (
@@ -199,7 +215,34 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
                 Rileggi le spiegazioni e torna ai capitoli per approfondire. Miglior risultato
                 salvato in questo browser: {bestScore ?? score}/{questions.length}.
               </p>
-              <AreaSummary answers={answers} questions={questions} />
+              <QuizPortrait areas={areaResults} />
+              <div className="quiz-areas" aria-live="polite">
+                <span className="label">DOVE TORNARE</span>
+                {areaResults.every((entry) => entry.correct === entry.total) ? (
+                  <p className="areas-ok">Nessun punto debole: hai colto tutte le aree del percorso.</p>
+                ) : (
+                  <ul>
+                    {areaResults
+                      .filter((entry) => entry.correct < entry.total)
+                      .map((entry) => {
+                        const target = QUIZ_AREA_CHAPTER[entry.area];
+                        return (
+                          <li key={entry.area}>
+                            <button
+                              className="inline-link"
+                              onClick={() => onOpenPassage(target.doc, target.section, "")}
+                            >
+                              {entry.area}
+                            </button>
+                            <span>
+                              {entry.correct}/{entry.total} · rileggi la tappa
+                            </span>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                )}
+              </div>
               <div className="results-review">
                 {questions.map((item, index) => (
                   <details key={item.q}>
@@ -214,6 +257,18 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
                       <b>Risposta corretta:</b> {item.a[item.correct]}
                     </p>
                     <p>{item.explanation}</p>
+                    {(() => {
+                      const source = sourceFor(item);
+                      if (!source) return null;
+                      return (
+                        <button
+                          className="passage-link"
+                          onClick={() => onOpenPassage(source.doc, source.section, source.term)}
+                        >
+                          Vai al passaggio <ArrowUpRight size={14} />
+                        </button>
+                      );
+                    })()}
                   </details>
                 ))}
               </div>
@@ -224,6 +279,17 @@ export function LabSection({ labView, bestScore, onLabViewChange, onBestScore }:
                 <button className="text-button" onClick={exportResult}>
                   <Download size={16} /> Esporta l’esito
                 </button>
+                <button className="text-button" onClick={() => window.print()}>
+                  <Printer size={16} /> Stampa il ritratto
+                </button>
+                <button className="text-button" onClick={copyResult}>
+                  <Copy size={16} /> Copia esito
+                </button>
+                {shareStatus && (
+                  <span className="share-status" role="status">
+                    {shareStatus}
+                  </span>
+                )}
               </div>
             </div>
           ) : (
